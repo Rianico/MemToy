@@ -1,0 +1,275 @@
+import { HorizontalBox, VerticalBox, DatePickerPopup, LineEdit, Button, TextEdit } from "std-widgets.slint";
+
+enum TabType { record, review }
+
+enum PageType { record-page, review-page }
+
+struct ViewInfo {
+    nav-bar-name: string,
+    tab-type: TabType,
+    page-type: PageType,
+}
+
+export global View {
+    in property <[ViewInfo]> view-info: [
+        { nav-bar-name: "Record", tab-type: TabType.record, page-type: PageType.record-page },
+        { nav-bar-name: "Review", tab-type: TabType.review, page-type: PageType.review-page },
+    ];
+}
+
+export global Style {
+    out property <length> nav-bar-height: 36px;
+    out property <length> nav-bar-min-len: 300px;
+    out property <color> surface: #7AA9B2;
+    out property <color> active-tab-background: #EAD5C0;
+    out property <color> tab-font-color: #56640E;
+    out property <color> tab-border-color: #023B4A;
+
+    out property <length> calendar-font-size: nav-bar-height;
+    out property <length> calendar-height: nav-bar-height * 1.618 * 1.618;
+
+    out property <color> calendar-font-color: #2F5E74;
+
+    out property <duration> animation-default-duration: 318ms;
+
+    out property <length> record-save-height: 36px;
+    out property <length> record-save-widdth: record-save-height * 1.618;
+    out property <color> save-button-color: #EAD5C0;
+}
+
+component NavItem inherits Rectangle {
+    in property <ViewInfo> view-info;
+    in property <bool> is-active;
+
+    clip: true;
+    border-radius: self.height / 1.618;
+    border-color: Style.tab-border-color;
+    border-width: 0.381px;
+    drop-shadow-color: is-active ? Style.active-tab-background : root.background;
+    drop-shadow-blur: is-active ? self.height / 1.618 / 1.618 : 0;
+
+    Text {
+        text: view-info.nav-bar-name;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+        color: Style.tab-font-color;
+        animate color {
+            duration: 381ms;
+            easing: ease-out;
+        }
+    }
+
+    animate background, drop-shadow-blur {
+        duration: 618ms;
+        easing: ease-in-out;
+    }
+}
+
+component NavBar inherits Rectangle {
+    in property <[ViewInfo]> nav-items;
+    out property <TabType> active-tab-type: nav-items[0].tab-type;
+
+    height: Style.nav-bar-height;
+    min-width: Style.nav-bar-min-len;
+
+    HorizontalLayout {
+        spacing: self.width * 1.618%;
+
+        Rectangle {
+            width: 27.6%;
+        }
+
+        for item in nav-items: NavItem {
+            view-info: item;
+            min-width: parent.width * 0.448 / nav-items.length;
+            background: root.active-tab-type == item.tab-type ? Style.active-tab-background : root.background;
+            TouchArea {
+                clicked => {
+                    active-tab-type = item.tab-type;
+                }
+            }
+        }
+
+        Rectangle {
+            width: 27.6%;
+        }
+    }
+}
+
+export global CalendarLogic {
+    pure callback get_date(int, int, int) -> string;
+    pure callback day_of_year(int, int, int) -> string;
+}
+
+export global CalendarStatus {
+    in-out property <string> date: CalendarLogic.get_date(0, 0, 0);
+    in-out property <string> day_of_year: CalendarLogic.day_of_year(0, 0, 0);
+}
+
+export component Calendar inherits Rectangle {
+    VerticalLayout {
+        alignment: center;
+        Rectangle {
+            height: 52.8%;
+            Text {
+                color: Style.calendar-font-color;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+                text: CalendarStatus.date == "" ? "~~~~" : CalendarStatus.date;
+                font-size: Style.calendar-font-size;
+                TouchArea {
+                    clicked => {
+                        date-picker.show();
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            Text {
+                color: Style.calendar-font-color;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+                text: CalendarStatus.day_of_year;
+                font-size: Style.calendar-font-size / 1.618;
+            }
+        }
+    }
+
+    date-picker := DatePickerPopup {
+        width: root.width;
+        close-on-click: false;
+
+        accepted(date) => {
+            CalendarStatus.date = CalendarLogic.get_date(date.year, date.month, date.day);
+            date-picker.close();
+        }
+
+        animate x {
+            duration: Style.animation-default-duration;
+            easing: ease-in-out;
+        }
+    }
+}
+
+component Page inherits Rectangle {
+    in property <[ViewInfo]> page-items;
+    @children
+}
+
+export struct RecordRes {
+        success: bool,
+        msg: string,
+}
+
+export global RecordController {
+    // @return true: success, false: failed
+    pure callback save(string) -> RecordRes;
+}
+
+export global RecordStatus { }
+
+component Record inherits Page {
+    VerticalLayout {
+        Calendar {
+            height: 14.6%;
+        }
+
+        Rectangle {
+            height: 61.8%;
+            record-content := TextEdit {
+                font-size: self.height * 5.56%;
+                width: 100%;
+                height: 100%;
+                opacity: 0.618;
+                horizontal-alignment: left;
+                placeholder-text: "enter your text...";
+            }
+        }
+
+        save-button := HorizontalBox {
+            in-out property <RecordRes> recordd-res: RecordController.save(record-content.text);
+
+            alignment: center;
+            record-rec := Rectangle {
+                background: Style.save-button-color;
+                width: 9%;
+                height: 14.6%;
+                border-width: 1px;
+                border-radius: self.height / 1.618;
+                vertical-stretch: 1;
+                record-text := Text {
+                    height: 100%;
+                    width: 100%;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    text: "save";
+                    TouchArea {
+                        clicked => {
+                            alert.show();
+                            record-content.clear-focus();
+                            alert-timer.running = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        alert-timer := Timer {
+            interval: 1s;
+            running: false;
+            triggered => {
+                alert.close();
+                self.running = false;
+            }
+        }
+
+        alert := PopupWindow {
+            Rectangle {
+                x: root.width * 38.2%;
+                y: root.height * 23.6%;
+                opacity: 0.618;
+                height: root.height * 23.6%;
+                width: root.width * 23.6%;
+                background: Style.tab-font-color;
+                border-radius: self.height * 9%;
+                Text {
+                    text: save-button.recordd-res.msg;
+                }
+            }
+        }
+    }
+}
+
+component Review inherits Page {
+    HorizontalBox {
+        alignment: space-around;
+        for item in root.page-items: Text {
+            text: "Review";
+        }
+    }
+}
+
+export component MainWindow inherits Window {
+    in-out property <string> name;
+    title: "Review Toy";
+    min-width: 648px;
+    min-height: 400px;
+    preferred-height: 900px / 2;
+    preferred-width: 1254px / 2;
+    background: Style.surface;
+
+    VerticalBox {
+        nav := NavBar {
+            nav-items: View.view-info;
+        }
+
+        if nav.active-tab-type == TabType.record: record := Record {
+            page-items: View.view-info;
+        }
+
+        if nav.active-tab-type == TabType.review: Review {
+            page-items: View.view-info;
+        }
+    }
+}
