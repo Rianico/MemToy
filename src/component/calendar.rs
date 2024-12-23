@@ -5,7 +5,7 @@ use slint::ComponentHandle;
 
 use chrono::NaiveDate;
 
-const DATE_FORMAT: &str = "%a, %Y-%m-%d";
+pub(crate) const DATE_FORMAT: &str = "%a, %Y-%m-%d";
 const DAY_OF_YEAR_FORMAT: &str = "Today is the %jth Day";
 
 pub(crate) struct CalendarTracker;

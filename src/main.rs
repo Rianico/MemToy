@@ -1,6 +1,6 @@
 mod component;
 
-use component::{calendar::CalendarTracker, record::RecordTracker};
+use component::{calendar::CalendarTracker, record::RecordTracker, review::ReviewTracker};
 use slint::ComponentHandle;
 
 slint::include_modules!();
@@ -14,8 +14,11 @@ pub fn main() -> Result<(), slint::PlatformError> {
     calender.get_date(&app);
     calender.day_of_year(&app);
 
-    let r = RecordTracker::new();
-    r.save_record_msg(&app);
+    let recordd = RecordTracker::new();
+    recordd.save_record_msg(&app);
+
+    let review = ReviewTracker::new();
+    review.review_today(&app);
 
     app.run()
 }

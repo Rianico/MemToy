@@ -1,4 +1,4 @@
-import { HorizontalBox, VerticalBox, DatePickerPopup, LineEdit, Button, TextEdit } from "std-widgets.slint";
+import { HorizontalBox, VerticalBox, DatePickerPopup, LineEdit, Button, TextEdit, ListView } from "std-widgets.slint";
 
 enum TabType { record, review }
 
@@ -133,21 +133,22 @@ export component Calendar inherits Rectangle {
                 text: CalendarStatus.day_of_year;
                 font-size: Style.calendar-font-size / 1.618;
             }
-        }
-    }
 
-    date-picker := DatePickerPopup {
-        width: root.width;
-        close-on-click: false;
+            date-picker := DatePickerPopup {
+                width: root.width / 2;
+                height: root.height / 2;
+                close-policy: PopupClosePolicy.close-on-click-outside;
 
-        accepted(date) => {
-            CalendarStatus.date = CalendarLogic.get_date(date.year, date.month, date.day);
-            date-picker.close();
-        }
+                accepted(date) => {
+                    CalendarStatus.date = CalendarLogic.get_date(date.year, date.month, date.day);
+                    date-picker.close();
+                }
 
-        animate x {
-            duration: Style.animation-default-duration;
-            easing: ease-in-out;
+                animate x {
+                    duration: Style.animation-default-duration;
+                    easing: ease-in-out;
+                }
+            }
         }
     }
 }
@@ -164,7 +165,7 @@ export struct RecordRes {
 
 export global RecordController {
     // @return true: success, false: failed
-    pure callback save(string) -> RecordRes;
+    pure callback save(string, string) -> RecordRes;
 }
 
 export global RecordStatus { }
@@ -188,7 +189,7 @@ component Record inherits Page {
         }
 
         save-button := HorizontalBox {
-            in-out property <RecordRes> recordd-res: RecordController.save(record-content.text);
+            in-out property <RecordRes> recordd-res: RecordController.save(record-content.text, CalendarStatus.date);
 
             alignment: center;
             record-rec := Rectangle {
@@ -241,11 +242,24 @@ component Record inherits Page {
     }
 }
 
+export global ReviewController {
+    pure callback review-today() -> [string];
+}
+
+export global ReviewStatus {
+    in-out property <[string]> records: ReviewController.review_today();
+}
+
 component Review inherits Page {
-    HorizontalBox {
-        alignment: space-around;
-        for item in root.page-items: Text {
-            text: "Review";
+    VerticalBox {
+        ListView {
+            for data in ReviewStatus.records: Rectangle {
+                width: parent.width;
+                Text {
+                    x: 0;
+                    text: data;
+                }
+            }
         }
     }
 }
