@@ -86,6 +86,8 @@ component NavBar inherits Rectangle {
             TouchArea {
                 clicked => {
                     active-tab-type = item.tab-type;
+                    CalendarStatus.date = CalendarController.get_date(0, 0, 0);
+                    ReviewStatus.records = ReviewController.review-today();
                 }
             }
         }
@@ -96,14 +98,14 @@ component NavBar inherits Rectangle {
     }
 }
 
-export global CalendarLogic {
+export global CalendarController {
     pure callback get_date(int, int, int) -> string;
     pure callback day_of_year(int, int, int) -> string;
 }
 
 export global CalendarStatus {
-    in-out property <string> date: CalendarLogic.get_date(0, 0, 0);
-    in-out property <string> day_of_year: CalendarLogic.day_of_year(0, 0, 0);
+    in-out property <string> date: CalendarController.get_date(0, 0, 0);
+    in-out property <string> day_of_year: CalendarController.day_of_year(0, 0, 0);
 }
 
 export component Calendar inherits Rectangle {
@@ -140,7 +142,7 @@ export component Calendar inherits Rectangle {
                 close-policy: PopupClosePolicy.close-on-click-outside;
 
                 accepted(date) => {
-                    CalendarStatus.date = CalendarLogic.get_date(date.year, date.month, date.day);
+                    CalendarStatus.date = CalendarController.get_date(date.year, date.month, date.day);
                     date-picker.close();
                 }
 

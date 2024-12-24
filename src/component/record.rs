@@ -4,7 +4,6 @@ use rusqlite::Connection;
 use slint::ComponentHandle;
 
 use crate::component::calendar::DATE_FORMAT;
-use crate::component::data_management::DataManagement;
 use crate::component::data_management::DataManagementType;
 use crate::component::data_management::General;
 use crate::component::data_management::DB_FILE;

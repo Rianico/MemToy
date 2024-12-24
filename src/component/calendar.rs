@@ -1,4 +1,4 @@
-use crate::CalendarLogic;
+use crate::CalendarController;
 use crate::MainWindow;
 
 use slint::ComponentHandle;
@@ -16,7 +16,7 @@ impl CalendarTracker {
     }
 
     pub fn get_date(&self, app: &MainWindow) {
-        app.global::<CalendarLogic>()
+        app.global::<CalendarController>()
             .on_get_date(move |year, month, day| {
                 if year == 0 && month == 0 && day == 0 {
                     chrono::Local::now()
@@ -34,7 +34,7 @@ impl CalendarTracker {
     }
 
     pub fn day_of_year(&self, app: &MainWindow) {
-        app.global::<CalendarLogic>()
+        app.global::<CalendarController>()
             .on_day_of_year(|year, month, day| {
                 if year == 0 && month == 0 && day == 0 {
                     chrono::Local::now()
