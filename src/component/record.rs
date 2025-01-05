@@ -1,15 +1,10 @@
-use log::debug;
-use log::error;
+use log::{debug, error};
 use rusqlite::Connection;
 use slint::ComponentHandle;
 
 use crate::component::calendar::DATE_FORMAT;
-use crate::component::data_management::DataManagementType;
-use crate::component::data_management::General;
-use crate::component::data_management::DB_FILE;
-use crate::MainWindow;
-use crate::RecordController;
-use crate::RecordRes;
+use crate::component::data_management::{DataManagementType, General, DB_FILE};
+use crate::{MainWindow, RecordController, RecordRes};
 
 pub(crate) struct RecordTracker {
     management: DataManagementType,

@@ -4,7 +4,6 @@ use log::{debug, error};
 use slint::{ComponentHandle, ModelRc, SharedString, VecModel};
 
 use super::data_management::{DataManagementType, General};
-
 use crate::{MainWindow, ReviewController};
 
 pub(crate) struct ReviewTracker {

@@ -1,4 +1,6 @@
-import { HorizontalBox, VerticalBox, DatePickerPopup, LineEdit, Button, TextEdit, ListView } from "std-widgets.slint";
+import { HorizontalBox, VerticalBox, DatePickerPopup, LineEdit, Button, TextEdit, ListView, CheckBox, Palette } from "std-widgets.slint";
+
+import { CustomCheckBox } from "components/checkbox.slint";
 
 enum TabType { record, review }
 
@@ -18,12 +20,14 @@ export global View {
 }
 
 export global Style {
-    out property <length> nav-bar-height: 36px;
+    out property <length> nav-bar-height: 64px;
     out property <length> nav-bar-min-len: 300px;
     out property <color> surface: #7AA9B2;
     out property <color> active-tab-background: #EAD5C0;
     out property <color> tab-font-color: #56640E;
     out property <color> tab-border-color: #023B4A;
+
+    out property <length> min-border: 36px;
 
     out property <length> calendar-font-size: nav-bar-height;
     out property <length> calendar-height: nav-bar-height * 1.618 * 1.618;
@@ -50,6 +54,7 @@ component NavItem inherits Rectangle {
 
     Text {
         text: view-info.nav-bar-name;
+        font-size: min(parent.min-height * 44.7%, parent.max-height * 44.7%);
         horizontal-alignment: center;
         vertical-alignment: center;
         color: Style.tab-font-color;
@@ -65,36 +70,38 @@ component NavItem inherits Rectangle {
     }
 }
 
-component NavBar inherits Rectangle {
+component NavBar inherits HorizontalLayout {
     in property <[ViewInfo]> nav-items;
     out property <TabType> active-tab-type: nav-items[0].tab-type;
 
-    height: Style.nav-bar-height;
-    min-width: Style.nav-bar-min-len;
+    min-height: 36px;
+    preferred-height: root.min-height * 9%;
+    max-height: 64px;
+    spacing: self.width * 1.618%;
 
-    HorizontalLayout {
-        spacing: self.width * 1.618%;
+    Rectangle {
+        width: 27.6%;
+    }
 
-        Rectangle {
-            width: 27.6%;
-        }
+    for item in nav-items: NavItem {
+        view-info: item;
 
-        for item in nav-items: NavItem {
-            view-info: item;
-            min-width: parent.width * 0.448 / nav-items.length;
-            background: root.active-tab-type == item.tab-type ? Style.active-tab-background : root.background;
-            TouchArea {
-                clicked => {
-                    active-tab-type = item.tab-type;
-                    CalendarStatus.date = CalendarController.get_date(0, 0, 0);
-                    ReviewStatus.records = ReviewController.review-today();
-                }
+        min-height: parent.min-height;
+        max-height: parent.max-height;
+        min-width: parent.width * 0.448 / nav-items.length;
+        background: root.active-tab-type == item.tab-type ? Style.active-tab-background : Style.surface;
+
+        TouchArea {
+            clicked => {
+                active-tab-type = item.tab-type;
+                CalendarStatus.date = CalendarController.get_date(0, 0, 0);
+                ReviewStatus.records = ReviewController.review-today();
             }
         }
+    }
 
-        Rectangle {
-            width: 27.6%;
-        }
+    Rectangle {
+        width: 27.6%;
     }
 }
 
@@ -108,7 +115,7 @@ export global CalendarStatus {
     in-out property <string> day_of_year: CalendarController.day_of_year(0, 0, 0);
 }
 
-export component Calendar inherits Rectangle {
+component Calendar inherits Rectangle {
     VerticalLayout {
         alignment: center;
         Rectangle {
@@ -155,11 +162,6 @@ export component Calendar inherits Rectangle {
     }
 }
 
-component Page inherits Rectangle {
-    in property <[ViewInfo]> page-items;
-    @children
-}
-
 export struct RecordRes {
         success: bool,
         msg: string,
@@ -172,73 +174,83 @@ export global RecordController {
 
 export global RecordStatus { }
 
-component Record inherits Page {
-    VerticalLayout {
-        Calendar {
-            height: 14.6%;
+component Record inherits VerticalLayout {
+    in property <[ViewInfo]> page-items;
+
+    Calendar {
+        height: 14%;
+    }
+
+    Rectangle {
+        min-height: parent.min-height * 61.8%;
+        preferred-height: parent.min-height * 70%;
+        max-height: parent.min-height * 80%;
+
+        record-content := TextEdit {
+            font-size: self.height * 5.56%;
+            width: 100%;
+            height: 100%;
+            opacity: 0.618;
+            horizontal-alignment: left;
+            placeholder-text: "enter your text...";
         }
+    }
 
-        Rectangle {
-            height: 61.8%;
-            record-content := TextEdit {
-                font-size: self.height * 5.56%;
-                width: 100%;
-                height: 100%;
-                opacity: 0.618;
-                horizontal-alignment: left;
-                placeholder-text: "enter your text...";
-            }
-        }
+    save-button := HorizontalBox {
+        in-out property <RecordRes> recordd-res: RecordController.save(record-content.text, CalendarStatus.date);
 
-        save-button := HorizontalBox {
-            in-out property <RecordRes> recordd-res: RecordController.save(record-content.text, CalendarStatus.date);
+        min-height: 48px;
+        preferred-height: parent.min-height * 9%;
+        max-height: 64px;
+        alignment: center;
 
-            alignment: center;
-            record-rec := Rectangle {
-                background: Style.save-button-color;
-                width: 9%;
-                height: 14.6%;
-                border-width: 1px;
-                border-radius: self.height / 1.618;
-                vertical-stretch: 1;
-                record-text := Text {
-                    height: 100%;
-                    width: 100%;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                    text: "save";
-                    TouchArea {
-                        clicked => {
-                            alert.show();
-                            record-content.clear-focus();
-                            alert-timer.running = true;
-                        }
+        record-rec := Rectangle {
+            background: Style.save-button-color;
+            border-radius: min(self.height / 1.618, 36px);
+
+            min-height: parent.min-height;
+            preferred-height: parent.preferred-height;
+            max-height: parent.max-height;
+
+            width: root.width * 14.6%;
+
+            record-text := Text {
+                font-size: min(parent.preferred-height * 44.7%, parent.max-height * 44.7%);
+                horizontal-alignment: center;
+                vertical-alignment: center;
+                text: "save";
+                color: Style.tab-font-color;
+                TouchArea {
+                    clicked => {
+                        alert.show();
+                        record-content.clear-focus();
+                        alert-timer.running = true;
                     }
                 }
             }
         }
+    }
 
-        alert-timer := Timer {
-            interval: 1s;
-            running: false;
-            triggered => {
-                alert.close();
-                self.running = false;
-            }
+    alert-timer := Timer {
+        interval: 1s;
+        running: false;
+        triggered => {
+            alert.close();
+            self.running = false;
         }
+    }
 
-        alert := PopupWindow {
-            Rectangle {
-                x: root.width * 38.2%;
-                y: root.height * 23.6%;
-                opacity: 0.618;
-                height: root.height * 23.6%;
-                width: root.width * 23.6%;
-                background: Style.tab-font-color;
-                border-radius: self.height * 9%;
-                Text {
-                    text: save-button.recordd-res.msg;
-                }
+    alert := PopupWindow {
+        Rectangle {
+            x: root.width * 38.2%;
+            y: root.height * 23.6%;
+            opacity: 0.618;
+            height: root.height * 23.6%;
+            width: root.width * 23.6%;
+            background: Style.tab-font-color;
+            border-radius: self.height * 9%;
+            Text {
+                text: save-button.recordd-res.msg;
             }
         }
     }
@@ -252,15 +264,67 @@ export global ReviewStatus {
     in-out property <[string]> records: ReviewController.review_today();
 }
 
-component Review inherits Page {
+component Review {
+    in property <[ViewInfo]> page-items;
     VerticalBox {
         ListView {
-            for data in ReviewStatus.records: Rectangle {
+            for row in ReviewStatus.records: VerticalLayout {
+                height: 14%;
                 width: parent.width;
-                Text {
-                    x: 0;
-                    text: data;
+                CustomCheckBox {
+                    text: row;
+                    height: parent.height * 90%;
+                    text-size: parent.height * 52.8%;
+                    checked: false;
+                    padding: 8px;
+                    spacing: 8px;
+                    TouchArea {
+                        changed has-hover => {
+                            details.show(row);
+                        }
+                    }
                 }
+
+                HorizontalLayout {
+                    height: 6%;
+                    TouchArea {
+                        changed has-hover => {
+                            details.hide();
+                        }
+                    }
+                }
+            }
+        }
+
+        details := Rectangle {
+            height: 14%;
+            out property <string> text;
+
+            visible: false;
+            border-radius: 4px;
+            padding: 4px;
+            background: Palette.alternate-background;
+            opacity: 0.236;
+
+            Text {
+                width: parent.width;
+                horizontal-alignment: left;
+                vertical-alignment: center;
+                text <=> parent.text;
+                wrap: word-wrap;
+            }
+
+            animate opacity { duration: 236ms; }
+
+            function show(text: string) {
+                self.text = text;
+                self.visible = true;
+                self.opacity = 0.618;
+            }
+
+            function hide() {
+                self.opacity = 0.236;
+                self.visible = false;
             }
         }
     }
@@ -271,20 +335,24 @@ export component MainWindow inherits Window {
     title: "Review Toy";
     min-width: 648px;
     min-height: 400px;
-    preferred-height: 900px / 2;
-    preferred-width: 1254px / 2;
+    preferred-height: 900px;
+    preferred-width: 1254px;
     background: Style.surface;
 
     VerticalBox {
         nav := NavBar {
+            min-height: 36px;
+            width: 100%;
             nav-items: View.view-info;
         }
 
         if nav.active-tab-type == TabType.record: record := Record {
+            min-height: root.height * 80%;
             page-items: View.view-info;
         }
 
         if nav.active-tab-type == TabType.review: Review {
+            min-height: root.height * 80%;
             page-items: View.view-info;
         }
     }
