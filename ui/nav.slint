@@ -1,0 +1,71 @@
+import { DatePickerPopup } from "std-widgets.slint";
+
+import { ViewInfo, TabType, Style } from "common.slint";
+
+import { Calendar, CalendarStatus, CalendarController } from "components/calendar.slint";
+
+component NavItem inherits Rectangle {
+    in property <ViewInfo> view-info;
+    in property <bool> is-active;
+
+    clip: true;
+    border-radius: self.height / 1.618;
+    border-color: Style.tab-border-color;
+    border-width: 0.381px;
+    drop-shadow-color: is-active ? Style.active-tab-background : root.background;
+    drop-shadow-blur: is-active ? self.height / 1.618 / 1.618 : 0;
+
+    Text {
+        text: view-info.nav-bar-name;
+        font-size: parent.min-height * 44.7%;
+        font-weight: 647;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+        color: Style.tab-font-color;
+        animate color {
+            duration: 381ms;
+            easing: ease-out;
+        }
+    }
+
+    animate background, drop-shadow-blur {
+        duration: 618ms;
+        easing: ease-in-out;
+    }
+}
+
+component NavBar inherits HorizontalLayout {
+    in property <[ViewInfo]> nav-items;
+    out property <TabType> active-tab-type: nav-items[0].tab-type;
+
+    min-height: 36px;
+    preferred-height: root.min-height * 9%;
+    max-height: 64px;
+    spacing: self.width * 1.618%;
+
+    Rectangle {
+        width: 27.6%;
+    }
+
+    for item in nav-items: NavItem {
+        view-info: item;
+
+        min-height: parent.min-height;
+        max-height: parent.max-height;
+        min-width: parent.width * 0.448 / nav-items.length;
+        background: root.active-tab-type == item.tab-type ? Style.active-tab-background : Style.surface;
+
+        TouchArea {
+            clicked => {
+                active-tab-type = item.tab-type;
+                CalendarStatus.date = CalendarController.get_date(0, 0, 0);
+            }
+        }
+    }
+
+    Rectangle {
+        width: 27.6%;
+    }
+}
+
+export { NavBar, NavItem, Calendar }

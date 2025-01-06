@@ -1,0 +1,67 @@
+import { HorizontalBox } from "std-widgets.slint";
+
+struct Task {
+    id: int,
+    content: string,
+    create-date: int,
+    finished: bool,
+}
+
+global CustomCheckBoxController {
+    pure callback toggle-task(id: int, create-date: int, finished: bool);
+}
+
+component CustomCheckBox inherits HorizontalLayout {
+    in property <Task> task;
+    in-out property <bool> finished: task.finished;
+    in property <length> text-size;
+
+    alignment: start;
+
+    Rectangle {
+        width: parent.height * 61.8%;
+        height: parent.height * 61.8%;
+        border-width: 1px;
+        border-color: #CCC;
+        border-radius: 8px;
+        background: finished ? #4CAF50 : #CCC;
+
+
+        // Display checkmark if finished
+        Text {
+            text: finished ? "✔" : "";
+            font-size: parent.height * 61.8%; // Dynamically scale the checkmark size
+            color: #56640E;
+        }
+
+        TouchArea {
+            clicked => {
+                root.finished = !root.finished; // Toggle the finished state
+                CustomCheckBoxController.toggle-task(task.id, task.create-date, root.finished);
+            }
+        }
+
+        animate background {
+            duration: 318ms;
+            easing: ease-in-out;
+        }
+    }
+
+    Rectangle {
+        // Display the label text
+        Text {
+            width: parent.width;
+            height: parent.height;
+            horizontal-alignment: left;
+            text: root.task.content;
+            color: #56640E;
+            font-size: self.height * 52.8%; // Dynamically scale the checkmark size
+            overflow: elide; // Truncate overflowing text
+            TouchArea {
+                @children
+            }
+        }
+    }
+}
+
+export { CustomCheckBox, Task }

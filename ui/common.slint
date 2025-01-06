@@ -1,0 +1,40 @@
+export global Style {
+    out property <length> nav-bar-height: 64px;
+    out property <length> nav-bar-min-len: 300px;
+    out property <color> surface: #7AA9B2;
+    out property <color> active-tab-background: #EAD5C0;
+    out property <color> tab-font-color: #56640E;
+    out property <color> tab-border-color: #023B4A;
+
+    out property <length> min-border: 36px;
+
+    out property <length> calendar-font-size: nav-bar-height;
+    out property <length> calendar-height: nav-bar-height * 1.618 * 1.618;
+
+    out property <color> calendar-font-color: #2F5E74;
+
+    out property <duration> animation-default-duration: 318ms;
+
+    out property <length> record-save-height: 36px;
+    out property <length> record-save-widdth: record-save-height * 1.618;
+    out property <color> save-button-color: #EAD5C0;
+}
+
+enum TabType { record, review }
+
+enum PageType { record-page, review-page }
+
+struct ViewInfo {
+    nav-bar-name: string,
+    tab-type: TabType,
+    page-type: PageType,
+}
+
+export global View {
+    in property <[ViewInfo]> view-info: [
+        { nav-bar-name: "Record", tab-type: TabType.record, page-type: PageType.record-page },
+        { nav-bar-name: "Review", tab-type: TabType.review, page-type: PageType.review-page },
+    ];
+}
+
+export { TabType, PageType, ViewInfo }

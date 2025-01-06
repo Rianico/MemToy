@@ -1,5 +1,5 @@
 [package]
-name = "MemoryToy"
+name = "MemToy"
 version = "0.1.0"
 build = "build.rs"
 edition = "2021"
@@ -7,15 +7,16 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.94"
 chrono = "0.4.39"
+directories = "5.0.1"
 env_logger = "0.11.6"
 log = { version = "0.4.22" }
 rand = "0.8"
 rusqlite = "0.32.1"
-slint = "1.9.0"
+slint = "1.9.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = { version = "0.2" }
 getrandom = { version = "0.2.2", features = ["js"] }
 
 [build-dependencies]
-slint-build = "1.9.0"
+slint-build = "1.9.1"

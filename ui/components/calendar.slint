@@ -1,0 +1,64 @@
+import { DatePickerPopup } from "std-widgets.slint";
+
+import { Style } from "../common.slint";
+
+global CalendarController {
+    pure callback get_date(year: int, month: int, day: int) -> string;
+    pure callback day_of_year(year: int, month: int, day: int) -> string;
+}
+
+global CalendarStatus {
+    // default: 0, 0, 0 => today
+    in-out property <string> date: CalendarController.get_date(0, 0, 0);
+    in-out property <string> day_of_year: CalendarController.day_of_year(0, 0, 0);
+}
+
+component Calendar inherits Rectangle {
+    VerticalLayout {
+        alignment: center;
+        Rectangle {
+            height: 52.8%;
+            Text {
+                color: Style.calendar-font-color;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+                text: CalendarStatus.date == "" ? "~~~~" : CalendarStatus.date;
+                font-size: Style.calendar-font-size;
+                TouchArea {
+                    clicked => {
+                        date-picker.show();
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            Text {
+                color: Style.calendar-font-color;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+                text: CalendarStatus.day_of_year;
+                font-size: Style.calendar-font-size / 1.618;
+            }
+
+            date-picker := DatePickerPopup {
+                width: root.width / 2;
+                height: root.height / 2;
+                close-policy: PopupClosePolicy.close-on-click-outside;
+
+                accepted(date) => {
+                    CalendarStatus.date = CalendarController.get_date(date.year, date.month, date.day);
+                    date-picker.close();
+                }
+
+                animate x {
+                    duration: Style.animation-default-duration;
+                    easing: ease-in-out;
+                }
+            }
+        }
+    }
+}
+
+export { Calendar, CalendarStatus, CalendarController}
+
