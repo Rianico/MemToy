@@ -12,7 +12,7 @@ struct RecordRes {
 
 global RecordController {
     // @return true: success, false: failed
-    pure callback save(string, string) -> RecordRes;
+    pure callback save-records(string, string) -> RecordRes;
 }
 
 global RecordStatus { }
@@ -40,7 +40,7 @@ component Record inherits VerticalLayout {
     }
 
     save-button := HorizontalBox {
-        in-out property <RecordRes> recordd-res: RecordController.save(record-content.text, CalendarStatus.date);
+        in-out property <RecordRes> recordd-res: RecordController.save-records(record-content.text, CalendarStatus.date);
 
         min-height: 48px;
         preferred-height: parent.min-height * 9%;
@@ -87,13 +87,14 @@ component Record inherits VerticalLayout {
         Rectangle {
             x: root.width * 38.2%;
             y: root.height * 23.6%;
-            opacity: 0.618;
             height: root.height * 23.6%;
             width: root.width * 23.6%;
+            opacity: 0.528;
             background: Style.tab-font-color;
             border-radius: self.height * 9%;
             Text {
                 text: save-button.recordd-res.msg;
+                font-size: parent.height * 14.6%;
             }
         }
     }

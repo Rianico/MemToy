@@ -3,18 +3,18 @@ import { HorizontalBox } from "std-widgets.slint";
 struct Task {
     id: int,
     content: string,
-    create-date: int,
+    create-date: string,
     finished: bool,
 }
 
 global CustomCheckBoxController {
-    pure callback toggle-task(id: int, create-date: int, finished: bool);
+    pure callback toggle-task(id: int, finished: bool);
 }
 
 component CustomCheckBox inherits HorizontalLayout {
     in property <Task> task;
+    in property <int> idx;
     in-out property <bool> finished: task.finished;
-    in property <length> text-size;
 
     alignment: start;
 
@@ -30,15 +30,12 @@ component CustomCheckBox inherits HorizontalLayout {
         // Display checkmark if finished
         Text {
             text: finished ? "✔" : "";
-            font-size: parent.height * 61.8%; // Dynamically scale the checkmark size
+            font-size: parent.height / 1.618; // Dynamically scale the checkmark size
             color: #56640E;
         }
 
         TouchArea {
-            clicked => {
-                root.finished = !root.finished; // Toggle the finished state
-                CustomCheckBoxController.toggle-task(task.id, task.create-date, root.finished);
-            }
+            @children
         }
 
         animate background {
@@ -49,19 +46,18 @@ component CustomCheckBox inherits HorizontalLayout {
 
     Rectangle {
         // Display the label text
+        height: parent.height * 61.8%;
         Text {
             width: parent.width;
             height: parent.height;
             horizontal-alignment: left;
+            vertical-alignment: center;
             text: root.task.content;
             color: #56640E;
-            font-size: self.height * 52.8%; // Dynamically scale the checkmark size
+            font-size: parent.height / 1.618; // Dynamically scale the checkmark size
             overflow: elide; // Truncate overflowing text
-            TouchArea {
-                @children
-            }
         }
     }
 }
 
-export { CustomCheckBox, Task }
+export { CustomCheckBox, CustomCheckBoxController, Task }

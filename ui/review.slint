@@ -2,42 +2,55 @@ import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, Chec
 
 import { Style, View, TabType,  ViewInfo } from "common.slint";
 
-import { CustomCheckBox, Task } from "components/checkbox.slint";
+import { CustomCheckBox, CustomCheckBoxController, Task } from "components/checkbox.slint";
 
 global ReviewController {
     pure callback review-today() -> [Task];
 }
 
 global ReviewStatus {
-    in-out property <[Task]> records: ReviewController.review_today();
+    in property <[Task]> tasks: ReviewController.review-today();
 }
 
 component Review inherits VerticalLayout {
     in property <[ViewInfo]> page-items;
 
     ListView {
-        for task in ReviewStatus.records: VerticalLayout {
+        for task[idx] in ReviewStatus.tasks: VerticalLayout {
             height: 14%;
             width: parent.width;
-            content := CustomCheckBox {
-                task: task;
-                height: parent.height * 90%;
-                text-size: parent.height * 52.8%;
-                padding: 8px;
-                spacing: 8px;
-                TouchArea {
-                    changed has-hover => {
+            to := TouchArea {
+                height: 90%;
+                width: 90%;
+
+                content := CustomCheckBox {
+                    cache-rendering-hint: true;
+                    task: task;
+                    idx: idx;
+                    height: root.height * 9%;
+                    padding: 8px;
+                    spacing: 8px;
+                    TouchArea {
+                        clicked => {
+                            parent.finished = !parent.finished; // Toggle the finished state
+                            ReviewStatus.tasks[idx].finished = parent.finished;
+                            CustomCheckBoxController.toggle-task(task.id, parent.finished);
+                        }
+                    }
+                }
+
+                clicked => {
+                    if !details.visible {
+                        details.visible = true;
+                    }
+                    if details.text != task.content {
                         details.show(task.content);
                     }
                 }
-            }
 
-            HorizontalLayout {
-                height: 6%;
-                TouchArea {
-                    changed has-hover => {
-                        details.hide();
-                    }
+                double-clicked => {
+                    details.visible = false;
+                    details.show("");
                 }
             }
         }
@@ -51,29 +64,29 @@ component Review inherits VerticalLayout {
         visible: false;
         border-radius: 4px;
         padding: 4px;
-        background: Palette.alternate-background;
+        background: Style.details-background-color;
         opacity: 0.236;
 
         Text {
-            width: parent.width;
+            width: parent.width * 98.382%;
             horizontal-alignment: left;
             vertical-alignment: center;
             text <=> parent.text;
             font-size: parent.height * 14.4%;
+            overflow: elide;
+            font-family: "Comic Sans MS";
             wrap: word-wrap;
         }
 
-        animate opacity { duration: 236ms; }
+        // animate opacity { duration: 236ms; }
 
         function show(text: string) {
             self.text = text;
-            self.visible = true;
             self.opacity = 0.618;
         }
 
         function hide() {
             self.opacity = 0.236;
-            self.visible = false;
         }
     }
 }

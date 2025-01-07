@@ -1,8 +1,12 @@
-use std::{env, fmt::Debug, path::PathBuf};
+use std::env;
+use std::fmt::Debug;
+use std::path::PathBuf;
 
 use chrono::NaiveDate;
-use log::debug;
-use rusqlite::{params_from_iter, types::FromSql, Connection, Params, Row};
+use log::{debug, trace};
+use rusqlite::{params_from_iter, Connection, Params, Row};
+
+use crate::Task;
 
 thread_local! {
     pub static DB_FILE: PathBuf = env::current_dir()
@@ -18,8 +22,11 @@ pub enum DataManagementType {
 pub struct DataManagement;
 
 impl DataManagement {
-    fn save(data: impl AsRef<str>, create_date: Option<NaiveDate>) -> anyhow::Result<&'static str> {
-        let con = DB_FILE.with(|p| Connection::open(p))?;
+    fn save_records(
+        data: impl AsRef<str>,
+        create_date: Option<NaiveDate>,
+    ) -> anyhow::Result<&'static str> {
+        let con = DB_FILE.with(|db_file| Connection::open(db_file))?;
         con.execute(
             "INSERT INTO records (content, create_date) VALUES (?1, ?2)",
             [
@@ -33,22 +40,37 @@ impl DataManagement {
         Ok("save success")
     }
 
-    fn query<T, U, P, F>(
-        query_sql: impl AsRef<str>,
-        params: P,
-        mapped_fn: F,
-    ) -> anyhow::Result<Vec<T>>
+    fn toggle_task(id: i32, finished: bool) -> anyhow::Result<()> {
+        let con = DB_FILE.with(|db_file| Connection::open(db_file))?;
+        // Use `INSERT OR REPLACE` to update or insert the record
+        con.execute(
+            "INSERT OR REPLACE INTO tasks (id, create_date, finished) VALUES (?1, ?2, ?3)",
+            (
+                &id,
+                chrono::Local::now().date_naive().to_string().as_str(),
+                &finished,
+            ),
+        )?;
+        Ok(())
+    }
+
+    fn query<P, F, T>(query_sql: impl AsRef<str>, params: P, mapped_fn: F) -> anyhow::Result<Vec<T>>
     where
-        T: From<U>,
-        U: FromSql,
         P: Params + Debug,
-        F: FnMut(&Row<'_>) -> rusqlite::Result<U>,
+        F: FnMut(&Row<'_>) -> rusqlite::Result<T> + 'static,
+        T: Debug,
     {
         let con = DB_FILE.with(|p| Connection::open(p))?;
         debug!("query: {}, params: {:?}", query_sql.as_ref(), params);
         let mut stmt = con.prepare(query_sql.as_ref())?;
-        let rows = stmt.query_map(params, mapped_fn)?;
-        Ok(rows.into_iter().map(|r| r.unwrap().into()).collect())
+        debug!(
+            "column nums: {}, column names: {:?}",
+            stmt.column_count(),
+            stmt.column_names()
+        );
+        let mut rows = stmt.query_map(params, mapped_fn)?.peekable();
+        trace!("{:?}", rows.peek());
+        Ok(rows.map(|r| r.unwrap()).collect())
     }
 }
 
@@ -60,17 +82,19 @@ impl General {
         General {}
     }
 
-    pub fn save(
+    pub fn save_records(
         &self,
         data: impl AsRef<str>,
         create_date: Option<NaiveDate>,
     ) -> Result<&'static str, anyhow::Error> {
-        DataManagement::save(data, create_date)
+        DataManagement::save_records(data, create_date)
     }
 
-    // ST: Slint Type
-    // RT: Rust Type
-    pub fn query_today_review<ST: From<RT>, RT: FromSql>(&self) -> Result<Vec<ST>, anyhow::Error> {
+    pub fn toggle_task(&self, id: i32, finished: bool) -> Result<(), anyhow::Error> {
+        DataManagement::toggle_task(id, finished)
+    }
+
+    pub fn query_today_review(&self) -> Result<Vec<Task>, anyhow::Error> {
         let today = chrono::Local::now().date_naive();
         let filter = [
             today.to_string(),
@@ -86,11 +110,45 @@ impl General {
             .strip_suffix(",")
             .unwrap_or_else(|| panic!("Strip suffix ',' for condition error"));
         let query_sql = format!(
-            "select content from records where create_date in ({})",
+            "SELECT r.id, r.content, r.create_date, COALESCE(t.finished, false) AS finished 
+            FROM records as r 
+            LEFT JOIN tasks t 
+            ON t.id = r.id AND t.create_date = '{}'
+            where r.create_date in ({})
+            order by r.create_date desc",
+            chrono::Local::now().date_naive(),
             condition
         );
-        DataManagement::query::<ST, RT, _, _>(query_sql, params_from_iter(&filter), |row| {
-            row.get::<_, RT>(0)
+        DataManagement::query(query_sql, params_from_iter(&filter), move |row| {
+            trace!("{row:?}");
+            Ok(Task {
+                id: row.get_unwrap(0),
+                content: row.get_unwrap::<_, String>(1).into(),
+                create_date: row.get_unwrap::<_, String>(2).into(),
+                finished: row.get_unwrap(3),
+            })
         })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use directories::ProjectDirs;
+
+    #[test]
+    fn directories_test() {
+        if let Some(proj_dirs) = ProjectDirs::from_path("MemToy".into()) {
+            // macOS: ~/Library/Application Support/com.mycompany.myapp/
+            // Windows: C:\Users\<Username>\AppData\Roaming\MyCompany\MyApp\
+            let data_dir = proj_dirs.data_dir();
+            println!("Data Directory: {:?}", data_dir);
+
+            // macOS: ~/Library/Caches/com.mycompany.myapp/
+            // Windows: C:\Users\<Username>\AppData\Local\MyCompany\MyApp\cache\
+            let cache_dir = proj_dirs.cache_dir();
+            println!("Cache Directory: {:?}", cache_dir);
+        } else {
+            eprintln!("Could not determine project directories.");
+        }
     }
 }
