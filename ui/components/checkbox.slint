@@ -1,4 +1,5 @@
-import { HorizontalBox } from "std-widgets.slint";
+import { HorizontalBox, Palette } from "std-widgets.slint";
+import { Style } from "../common.slint";
 
 struct Task {
     id: int,
@@ -9,6 +10,7 @@ struct Task {
 
 global CustomCheckBoxController {
     pure callback toggle-task(id: int, finished: bool);
+    pure callback delete-task(id: int);
 }
 
 component CustomCheckBox inherits HorizontalLayout {
@@ -18,7 +20,7 @@ component CustomCheckBox inherits HorizontalLayout {
 
     alignment: start;
 
-    Rectangle {
+    check-box := Rectangle {
         width: parent.height * 61.8%;
         height: parent.height * 61.8%;
         border-width: 1px;
@@ -47,6 +49,7 @@ component CustomCheckBox inherits HorizontalLayout {
     Rectangle {
         // Display the label text
         height: parent.height * 61.8%;
+        width: (parent.width - check-box.width - del-button.width) * 95%;
         Text {
             width: parent.width;
             height: parent.height;
@@ -56,6 +59,30 @@ component CustomCheckBox inherits HorizontalLayout {
             color: #56640E;
             font-size: parent.height / 1.618; // Dynamically scale the checkmark size
             overflow: elide; // Truncate overflowing text
+        }
+    }
+
+    del := TouchArea {
+        clicked => {
+            CustomCheckBoxController.delete-task(root.task.id);
+        }
+        del-button := Rectangle {
+            visible: del.has-hover;
+            width: parent.height * 61.8%;
+            height: parent.height * 61.8%;
+            drop-shadow-color: #CCC;
+            drop-shadow-blur: 4px;
+
+            Text {
+                text: "X";
+                font-size: parent.height / 1.618;
+                color: #56640E;
+            }
+
+            animate drop-shadow-color {
+                duration: 318ms;
+                easing: ease-in-out;
+            }
         }
     }
 }

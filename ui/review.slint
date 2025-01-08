@@ -6,6 +6,10 @@ import { CustomCheckBox, CustomCheckBoxController, Task } from "components/check
 
 global ReviewController {
     pure callback review-today() -> [Task];
+    public function refresh() {
+        debug("refresh Review Page");
+        ReviewStatus.tasks = ReviewController.review-today();
+    }
 }
 
 global ReviewStatus {
@@ -19,12 +23,12 @@ component Review inherits VerticalLayout {
         for task[idx] in ReviewStatus.tasks: VerticalLayout {
             height: 14%;
             width: parent.width;
-            to := TouchArea {
+
+            TouchArea {
                 height: 90%;
                 width: 90%;
 
                 content := CustomCheckBox {
-                    cache-rendering-hint: true;
                     task: task;
                     idx: idx;
                     height: root.height * 9%;
@@ -40,17 +44,12 @@ component Review inherits VerticalLayout {
                 }
 
                 clicked => {
-                    if !details.visible {
-                        details.visible = true;
-                    }
-                    if details.text != task.content {
-                        details.show(task.content);
-                    }
+                    details.show-content(task.content);
                 }
 
                 double-clicked => {
-                    details.visible = false;
-                    details.show("");
+                    details.copy-content();
+                    alert-popup();
                 }
             }
         }
@@ -59,34 +58,75 @@ component Review inherits VerticalLayout {
     details := Rectangle {
         height: parent.min-height * 22.4%;
 
-        out property <string> text;
-
-        visible: false;
         border-radius: 4px;
         padding: 4px;
         background: Style.details-background-color;
-        opacity: 0.236;
+        opacity: 0.618;
 
-        Text {
-            width: parent.width * 98.382%;
-            horizontal-alignment: left;
-            vertical-alignment: center;
-            text <=> parent.text;
-            font-size: parent.height * 14.4%;
-            overflow: elide;
-            font-family: "Comic Sans MS";
-            wrap: word-wrap;
+        TouchArea {
+            mouse-cursor: copy;
+
+            clicked => {
+                alert-popup();
+            }
+
+            details-content := TextEdit {
+                font-size: self.height * 14.4%;
+                width: 100%;
+                height: 100%;
+                opacity: 0.618;
+                horizontal-alignment: left;
+                enabled: false;
+                wrap: word-wrap;
+            }
         }
 
-        // animate opacity { duration: 236ms; }
+        animate opacity { duration: 236ms; }
 
-        function show(text: string) {
-            self.text = text;
-            self.opacity = 0.618;
+        function show-content(text: string) {
+            details-content.text = text;
+            details-content.set-selection-offsets(0, 0);
         }
 
-        function hide() {
-            self.opacity = 0.236;
+        function copy-content() {
+            details-content.select-all();
+            details-content.copy();
+            details-content.set-selection-offsets(0, 0);
+        }
+    }
+
+    function alert-popup() {
+        alert.show();
+        alert-timer.running = true;
+    }
+
+    alert := PopupWindow {
+        Rectangle {
+            x: root.width * 38.2%;
+            y: root.height * 23.6%;
+            height: root.height * 23.6%;
+            width: root.width * 23.6%;
+            opacity: 0.618;
+            background: Style.tab-font-color;
+            border-radius: self.height * 9%;
+            Text {
+                text: "Copy to Clipboard";
+                font-size: parent.height * 14.6%;
+            }
+        }
+
+        function popup() {
+            self.show();
+            alert-timer.running = true;
+        }
+    }
+
+    alert-timer := Timer {
+        interval: 1s;
+        running: false;
+        triggered => {
+            alert.close();
+            self.running = false;
         }
     }
 }

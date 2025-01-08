@@ -3,6 +3,7 @@ import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, Chec
 import { Style, View, TabType,  ViewInfo } from "common.slint";
 
 import { Calendar, CalendarStatus } from "components/calendar.slint";
+import { ReviewStatus, ReviewController } from "review.slint";
 
 
 struct RecordRes {
@@ -40,14 +41,14 @@ component Record inherits VerticalLayout {
     }
 
     save-button := HorizontalBox {
-        in-out property <RecordRes> recordd-res: RecordController.save-records(record-content.text, CalendarStatus.date);
+        in-out property <RecordRes> recordd-res;
 
         min-height: 48px;
         preferred-height: parent.min-height * 9%;
         max-height: 64px;
         alignment: center;
 
-        record-rec := Rectangle {
+        Rectangle {
             background: Style.save-button-color;
             border-radius: min(self.height / 1.618, 36px);
 
@@ -57,7 +58,7 @@ component Record inherits VerticalLayout {
 
             width: root.width * 14.6%;
 
-            record-text := Text {
+            Text {
                 font-size: min(parent.preferred-height * 44.7%, parent.max-height * 44.7%);
                 horizontal-alignment: center;
                 vertical-alignment: center;
@@ -65,20 +66,32 @@ component Record inherits VerticalLayout {
                 color: Style.tab-font-color;
                 TouchArea {
                     clicked => {
+                        record-content.focus();
+                        save-button.recordd-res = RecordController.save-records(record-content.text, CalendarStatus.date);
+                        if save-button.recordd-res.success {
+                            ReviewController.refresh();
+                        }
                         alert.show();
-                        record-content.clear-focus();
                         alert-timer.running = true;
+                        debug("save function finish");
                     }
                 }
             }
         }
     }
 
+    function unfocus-record-content() {
+        record-content.clear-focus();
+    }
+
     alert-timer := Timer {
         interval: 1s;
         running: false;
         triggered => {
+            debug("alert-time begin");
             alert.close();
+            // todo: explore why delete the function and call clear-focus will panic
+            parent.unfocus-record-content();
             self.running = false;
         }
     }
@@ -89,7 +102,7 @@ component Record inherits VerticalLayout {
             y: root.height * 23.6%;
             height: root.height * 23.6%;
             width: root.width * 23.6%;
-            opacity: 0.528;
+            opacity: 0.618;
             background: Style.tab-font-color;
             border-radius: self.height * 9%;
             Text {
