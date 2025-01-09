@@ -1,0 +1,41 @@
+import { Style } from "../common.slint";
+
+component AutoPopupWindow {
+    height: 100%;
+    width: 100%;
+
+    // the popup window will close after 1s
+    public function popup-and-hide() {
+        alert.show();
+        timer.running = true;
+    }
+
+    // the popup windwon will not close
+    public function popup() {
+        alert.show()
+    }
+
+    public function close-window() {
+        alert.close()
+    }
+
+    callback after-auto-close();
+
+    timer := Timer {
+        interval: 1s;
+        running: false;
+        triggered => {
+            alert.close();
+            self.running = false;
+            parent.after-auto-close();
+        }
+    }
+
+    alert := PopupWindow {
+        Rectangle {
+            @children
+        }
+    }
+}
+
+export { AutoPopupWindow }
