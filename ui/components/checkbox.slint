@@ -8,18 +8,19 @@ struct Task {
     finished: bool,
 }
 
-global CustomCheckBoxController {
-    pure callback toggle-task(id: int, finished: bool);
-    pure callback delete-task(id: int);
-}
+global CustomCheckBoxController { }
 
 component CustomCheckBox inherits HorizontalLayout {
     in property <Task> task;
     in property <int> idx;
     in-out property <bool> finished: task.finished;
 
+    callback on-checked();
+    callback on-del();
+
     alignment: start;
 
+    // checked
     check-box := Rectangle {
         width: parent.height * 61.8%;
         height: parent.height * 61.8%;
@@ -28,16 +29,18 @@ component CustomCheckBox inherits HorizontalLayout {
         border-radius: 8px;
         background: finished ? #4CAF50 : #CCC;
 
-
         // Display checkmark if finished
         Text {
             text: finished ? "✔" : "";
-            font-size: parent.height / 1.618; // Dynamically scale the checkmark size
+            font-size: parent.height / 1.618;
             color: #56640E;
+            font-family: "Comic Sans MS";
         }
 
         TouchArea {
-            @children
+            clicked => {
+                root.on-checked();
+            }
         }
 
         animate background {
@@ -46,8 +49,8 @@ component CustomCheckBox inherits HorizontalLayout {
         }
     }
 
+    // content
     Rectangle {
-        // Display the label text
         height: parent.height * 61.8%;
         width: (parent.width - check-box.width - del-button.width) * 95%;
         Text {
@@ -57,14 +60,16 @@ component CustomCheckBox inherits HorizontalLayout {
             vertical-alignment: center;
             text: root.task.content;
             color: #56640E;
-            font-size: parent.height / 1.618; // Dynamically scale the checkmark size
-            overflow: elide; // Truncate overflowing text
+            font-size: parent.height / 1.618;
+            font-family: "Comic Sans MS";
+            overflow: elide;
         }
     }
-
+    
+    // delete-button
     del := TouchArea {
         clicked => {
-            CustomCheckBoxController.delete-task(root.task.id);
+            root.on-del();
         }
         del-button := Rectangle {
             visible: del.has-hover;

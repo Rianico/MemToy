@@ -22,6 +22,7 @@ pub fn main() -> Result<(), slint::PlatformError> {
     let review = ReviewTracker::new();
     review.review_today(&app);
     review.toggle_task(&app);
+    review.del_task(&app);
 
     app.run()
 }

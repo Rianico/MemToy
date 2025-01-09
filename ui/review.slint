@@ -1,55 +1,179 @@
-import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, CheckBox, Palette } from "std-widgets.slint";
+import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, CheckBox, Palette, StandardButton, ScrollView } from "std-widgets.slint";
 
 import { Style, View, TabType,  ViewInfo } from "common.slint";
 
 import { CustomCheckBox, CustomCheckBoxController, Task } from "components/checkbox.slint";
+import { AutoPopupWindow } from "components/popupwindow.slint";
 
 global ReviewController {
     pure callback review-today() -> [Task];
+    callback toggle-task(id: int, finished: bool);
+    callback del-task(id: int);
+
     public function refresh() {
-        debug("refresh Review Page");
         ReviewStatus.tasks = ReviewController.review-today();
     }
 }
 
 global ReviewStatus {
     in property <[Task]> tasks: ReviewController.review-today();
+    in property <Task> selected-task;
+    in property <Task> deleted-task;
 }
 
 component Review inherits VerticalLayout {
     in property <[ViewInfo]> page-items;
 
-    ListView {
-        for task[idx] in ReviewStatus.tasks: VerticalLayout {
-            height: 14%;
-            width: parent.width;
+    Rectangle {
 
-            TouchArea {
-                height: 90%;
-                width: 90%;
+        copied-warnning := AutoPopupWindow {
+            Rectangle {
+                x: parent.width * 38.2%;
+                y: parent.height * 38.2%;
+                height: parent.height * 23.6%;
+                width: parent.width * 23.6%;
+                background: Style.tab-font-color;
+                border-radius: self.height * 14.6%;
+                opacity: 0.8;
+                Text {
+                    text: "Copy to Clipboard";
+                    font-size: parent.height * 14.6%;
+                    font-family: "Comic Sans MS";
+                }
+            }
+        }
 
-                content := CustomCheckBox {
-                    task: task;
-                    idx: idx;
-                    height: root.height * 9%;
-                    padding: 8px;
-                    spacing: 8px;
-                    TouchArea {
-                        clicked => {
-                            parent.finished = !parent.finished; // Toggle the finished state
-                            ReviewStatus.tasks[idx].finished = parent.finished;
-                            CustomCheckBoxController.toggle-task(task.id, parent.finished);
+        del-warning := PopupWindow {
+            x: parent.width * 26.4%;
+            y: parent.height * 26.4%;
+            z: 10;
+            height: root.height * 47.2%;
+            width: root.width * 47.2%;
+
+            Rectangle {
+                height: 100%;
+                width: 100%;
+                background: Style.tab-font-color;
+                border-radius: self.height * 14.6%;
+                opacity: 0.8;
+
+                VerticalBox {
+                    height: parent.height;
+                    width: parent.width;
+                    alignment: space-between;
+
+                    Rectangle {
+                        height: parent.height * 14.6%;
+                        Text {
+                            horizontal-alignment: center;
+                            vertical-alignment: top;
+                            text: "Delete the task?";
+                            font-size: parent.height;
+                            font-family: "Comic Sans MS";
+                            font-weight: 800;
+                        }
+                    }
+
+                    ScrollView {
+                        width: parent.width;
+                        height: parent.height * 52.8%;
+                        viewport-height: t.height;
+                        t := Text {
+                            horizontal-alignment: center;
+                            width: parent.width * 90%;
+                            text: ReviewStatus.deleted-task.content;
+                            wrap: word-wrap;
+                            font-size: parent.height * 14.6%;
+                            font-family: "Comic Sans MS";
+                        }
+                    }
+
+                    HorizontalBox {
+                        alignment: space-around;
+                        height: parent.height * 14.6%;
+                        width: parent.width;
+
+                        TouchArea {
+                            height: parent.height * 52.8%;
+                            width: parent.width * 33%;
+                            clicked => {
+                                debug("yes -> delete");
+                                // ReviewController.del-task(ReviewStatus.deleted-task.id);
+                                // ReviewController.refresh();
+                            }
+                            Rectangle {
+                                height: parent.height;
+                                width: parent.width;
+                                border-radius: self.height * 14.6%;
+
+                                background: white;
+                                Text {
+                                    text: "yes";
+                                }
+                            }
+                        }
+
+                        StandardButton {
+                            kind: no;
+                            height: parent.height;
+                            clicked => {
+                                del-warning.close();
+                            }
                         }
                     }
                 }
+            }
+        }
 
-                clicked => {
-                    details.show-content(task.content);
-                }
+        // del-warnning := AutoPopupWindow {
+        //     Rectangle {
+        //         x: parent.width * 23.6%;
+        //         y: parent.height * 26.4%;
+        //         height: parent.height * 47.2%;
+        //         width: parent.width * 52.8%;
+        //         background: Style.tab-font-color;
+        //         border-radius: self.height * 14.6%;
+        //         opacity: 0.8;
+        //     }
+        // }
 
-                double-clicked => {
-                    details.copy-content();
-                    alert-popup();
+        ListView {
+            for task[idx] in ReviewStatus.tasks: VerticalLayout {
+                height: 14%;
+                width: parent.width;
+
+                TouchArea {
+                    height: 90%;
+                    width: 90%;
+
+                    content := CustomCheckBox {
+                        task: task;
+                        idx: idx;
+                        height: root.height * 9%;
+                        padding: 8px;
+                        spacing: 8px;
+
+                        on-checked => {
+                            self.finished = !self.finished; // Toggle the finished state
+                            ReviewStatus.tasks[idx].finished = self.finished;
+                            ReviewController.toggle-task(task.id, self.finished);
+                        }
+
+                        on-del => {
+                            del-warning.show();
+                            ReviewStatus.deleted-task = self.task;
+                        }
+                    }
+
+                    clicked => {
+                        ReviewStatus.selected-task = task;
+                    }
+
+                    double-clicked => {
+                        ReviewStatus.selected-task = task;
+                        details.copy-content();
+                        copied-warnning.popup-and-hide()
+                    }
                 }
             }
         }
@@ -67,10 +191,12 @@ component Review inherits VerticalLayout {
             mouse-cursor: copy;
 
             clicked => {
-                alert-popup();
+                details.copy-content();
+                copied-warnning.popup-and-hide();
             }
 
             details-content := TextEdit {
+                text: ReviewStatus.selected-task.content;
                 font-size: self.height * 14.4%;
                 width: 100%;
                 height: 100%;
@@ -83,50 +209,10 @@ component Review inherits VerticalLayout {
 
         animate opacity { duration: 236ms; }
 
-        function show-content(text: string) {
-            details-content.text = text;
-            details-content.set-selection-offsets(0, 0);
-        }
-
         function copy-content() {
             details-content.select-all();
             details-content.copy();
             details-content.set-selection-offsets(0, 0);
-        }
-    }
-
-    function alert-popup() {
-        alert.show();
-        alert-timer.running = true;
-    }
-
-    alert := PopupWindow {
-        Rectangle {
-            x: root.width * 38.2%;
-            y: root.height * 23.6%;
-            height: root.height * 23.6%;
-            width: root.width * 23.6%;
-            opacity: 0.618;
-            background: Style.tab-font-color;
-            border-radius: self.height * 9%;
-            Text {
-                text: "Copy to Clipboard";
-                font-size: parent.height * 14.6%;
-            }
-        }
-
-        function popup() {
-            self.show();
-            alert-timer.running = true;
-        }
-    }
-
-    alert-timer := Timer {
-        interval: 1s;
-        running: false;
-        triggered => {
-            alert.close();
-            self.running = false;
         }
     }
 }

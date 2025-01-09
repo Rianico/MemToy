@@ -3,6 +3,7 @@ import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, Chec
 import { Style, View, TabType,  ViewInfo } from "common.slint";
 
 import { Calendar, CalendarStatus } from "components/calendar.slint";
+import { AutoPopupWindow } from "components/popupwindow.slint";
 import { ReviewStatus, ReviewController } from "review.slint";
 
 
@@ -37,6 +38,37 @@ component Record inherits VerticalLayout {
             opacity: 0.618;
             horizontal-alignment: left;
             placeholder-text: "enter your text...";
+
+            function unfocus() {
+                self.clear-focus();
+            }
+
+            function clear-content() {
+                self.select-all();
+                self.clear-selection();
+            }
+        }
+
+        save-warnning := AutoPopupWindow {
+
+            after-auto-close => {
+                record-content.unfocus();
+            }
+
+            Rectangle {
+                x: parent.width * 38.2%;
+                y: parent.height * 38.2%;
+                height: parent.height * 23.6%;
+                width: parent.width * 23.6%;
+                opacity: 0.8;
+                background: Style.tab-font-color;
+                border-radius: self.height * 14.6%;
+                Text {
+                    text: save-button.recordd-res.msg;
+                    font-size: parent.height * 14.6%;
+                    font-family: "Comic Sans MS";
+                }
+            }
         }
     }
 
@@ -70,44 +102,12 @@ component Record inherits VerticalLayout {
                         save-button.recordd-res = RecordController.save-records(record-content.text, CalendarStatus.date);
                         if save-button.recordd-res.success {
                             ReviewController.refresh();
+                            record-content.clear-content();
                         }
-                        alert.show();
-                        alert-timer.running = true;
+                        save-warnning.popup-and-hide();
                         debug("save function finish");
                     }
                 }
-            }
-        }
-    }
-
-    function unfocus-record-content() {
-        record-content.clear-focus();
-    }
-
-    alert-timer := Timer {
-        interval: 1s;
-        running: false;
-        triggered => {
-            debug("alert-time begin");
-            alert.close();
-            // todo: explore why delete the function and call clear-focus will panic
-            parent.unfocus-record-content();
-            self.running = false;
-        }
-    }
-
-    alert := PopupWindow {
-        Rectangle {
-            x: root.width * 38.2%;
-            y: root.height * 23.6%;
-            height: root.height * 23.6%;
-            width: root.width * 23.6%;
-            opacity: 0.618;
-            background: Style.tab-font-color;
-            border-radius: self.height * 9%;
-            Text {
-                text: save-button.recordd-res.msg;
-                font-size: parent.height * 14.6%;
             }
         }
     }

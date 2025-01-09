@@ -5,7 +5,7 @@ use rusqlite::Connection;
 use slint::{ComponentHandle, ModelRc, VecModel};
 
 use super::data_management::{DataManagementType, General};
-use crate::{component::data_management::DB_FILE, CustomCheckBoxController, MainWindow, ReviewController};
+use crate::{component::data_management::DB_FILE, MainWindow, ReviewController};
 
 pub(crate) struct ReviewTracker {
     management: DataManagementType,
@@ -54,7 +54,7 @@ impl ReviewTracker {
 
     pub(crate) fn toggle_task(&self, app: &MainWindow) {
         let managenet = self.management;
-        app.global::<CustomCheckBoxController>()
+        app.global::<ReviewController>()
             .on_toggle_task(move |id, finished|{
                 match managenet {
                     DataManagementType::Simple(ref general) => {
@@ -64,6 +64,26 @@ impl ReviewTracker {
                             }
                             Err(msg) => {
                                 error!("change task finished status failed, err: {}", msg)
+                            }
+                        }
+
+                    },
+                }
+            })
+    }
+
+    pub(crate) fn del_task(&self, app: &MainWindow) {
+        let managenet = self.management;
+        app.global::<ReviewController>()
+            .on_del_task(move |id|{
+                match managenet {
+                    DataManagementType::Simple(ref general) => {
+                        match general.del_task(id) {
+                            Ok(()) => {
+                                info!("delete record and task, id: {id}");
+                            }
+                            Err(msg) => {
+                                error!("delete record and task failed, err: {}", msg)
                             }
                         }
 

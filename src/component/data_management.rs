@@ -40,6 +40,16 @@ impl DataManagement {
         Ok("save success")
     }
 
+    fn del_task(id: i32) -> anyhow::Result<()> {
+        let mut con = DB_FILE.with(|db_file| Connection::open(db_file))?;
+        let tx = con.transaction()?;
+        // Use `INSERT OR REPLACE` to update or insert the record
+        tx.execute( "delete from records where id = ?",  [id])?;
+        tx.execute( "delete from tasks where id = ?",  [id])?;
+        tx.commit()?;
+        Ok(())
+    }
+
     fn toggle_task(id: i32, finished: bool) -> anyhow::Result<()> {
         let con = DB_FILE.with(|db_file| Connection::open(db_file))?;
         // Use `INSERT OR REPLACE` to update or insert the record
@@ -92,6 +102,10 @@ impl General {
 
     pub fn toggle_task(&self, id: i32, finished: bool) -> Result<(), anyhow::Error> {
         DataManagement::toggle_task(id, finished)
+    }
+
+    pub fn del_task(&self, id: i32) -> Result<(), anyhow::Error> {
+        DataManagement::del_task(id)
     }
 
     pub fn query_today_review(&self) -> Result<Vec<Task>, anyhow::Error> {
