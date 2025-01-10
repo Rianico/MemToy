@@ -41,12 +41,11 @@ component Review inherits VerticalLayout {
                         ReviewController.toggle-task(task.id, self.finished);
                     }
                     on-select => {
-
                         ReviewStatus.selected-task = task;
                     }
                     on-double-select => {
                         ReviewStatus.selected-task = task;
-                        details.copy-content();
+                        details-content.copy-content();
                         copied-warnning.popup-and-hide()
                     }
                     on-del => {
@@ -54,12 +53,8 @@ component Review inherits VerticalLayout {
                         del-warning.show();
                     }
                     on-swipe-to-left => {
-                        RichCheckBoxStatus.del-button-enabled = true;
-                        RichCheckBoxStatus.del-button-x-position = 0;
                     }
                     on-swipe-to-right => {
-                        RichCheckBoxStatus.del-button-enabled = false;
-                        RichCheckBoxStatus.del-button-x-position = root.width;
                     }
                 }
             }
@@ -71,13 +66,13 @@ component Review inherits VerticalLayout {
                 y: parent.height * 38.2%;
                 height: parent.height * 23.6%;
                 width: parent.width * 23.6%;
-                background: Style.tab-font-color;
+                background: Style.popup-win-color;
                 border-radius: self.height * 14.6%;
                 opacity: 0.8;
                 Text {
                     text: "Copy to Clipboard";
                     font-size: parent.height * 14.6%;
-                    font-family: "Comic Sans MS";
+                    font-family: Style.default-font-family;
                 }
             }
         }
@@ -91,7 +86,7 @@ component Review inherits VerticalLayout {
             Rectangle {
                 height: 100%;
                 width: 100%;
-                background: Style.tab-font-color;
+                background: Style.popup-win-color;
                 border-radius: self.height * 14.6%;
                 opacity: 0.8;
 
@@ -107,13 +102,13 @@ component Review inherits VerticalLayout {
                             vertical-alignment: top;
                             text: "Delete the task?";
                             font-size: parent.height / 1.618;
-                            font-family: "Comic Sans MS";
+                            font-family: Style.default-font-family;
                             font-weight: 800;
                         }
                     }
 
                     ScrollView {
-                        width: parent.width;
+                        width: parent.width * 98%;
                         height: parent.height * 52.8%;
                         viewport-height: t.height;
                         t := Text {
@@ -122,31 +117,36 @@ component Review inherits VerticalLayout {
                             text: ReviewStatus.deleted-task.content;
                             wrap: word-wrap;
                             font-size: parent.height * 14.6%;
-                            font-family: "Comic Sans MS";
+                            font-family: Style.default-font-family;
                         }
                     }
 
                     HorizontalBox {
                         alignment: space-around;
-                        height: parent.height * 14.6%;
-                        width: parent.width;
+                        min-height: 48px;
+                        preferred-height: parent.height * 14.6%;
+                        max-height: 64px;
 
                         TouchArea {
-                            height: parent.height * 52.8%;
-                            width: parent.width * 33%;
+                            min-height: parent.min-height;
+                            preferred-height: parent.preferred-height;
+                            max-height: parent.max-height;
+                            width: self.preferred-height * 1.618;
                             clicked => {
                                 debug("[slint] delete task id: " + ReviewStatus.deleted-task.id);
                                 ReviewController.del-task(ReviewStatus.deleted-task.id);
+                                ReviewStatus.selected-task = { id: 0 };
                                 ReviewController.refresh();
                             }
                             Rectangle {
-                                height: parent.height;
+                                preferred-height: parent.preferred-height;
                                 width: parent.width;
-                                border-radius: self.height * 14.6%;
-                                background: white;
+                                border-radius: min(self.height / 1.618, 36px);
+                                background: Style.save-button-color;
                                 Text {
                                     text: "yes";
-                                    font-size: parent.height * 44.7%;
+                                    font-size: parent.preferred-height * 44.7%;
+                                    font-family: Style.default-font-family;
                                     horizontal-alignment: center;
                                     vertical-alignment: center;
                                     color: Style.tab-font-color;
@@ -154,11 +154,27 @@ component Review inherits VerticalLayout {
                             }
                         }
 
-                        StandardButton {
-                            kind: no;
-                            height: parent.height;
+                        TouchArea {
+                            min-height: parent.min-height;
+                            preferred-height: parent.preferred-height;
+                            max-height: parent.max-height;
+                            width: self.preferred-height * 1.618;
                             clicked => {
-                                del-warning.close();
+                                del-warning.close()
+                            }
+                            Rectangle {
+                                preferred-height: parent.preferred-height;
+                                width: parent.width;
+                                border-radius: min(self.height / 1.618, 36px);
+                                background: Style.save-button-color;
+                                Text {
+                                    text: "no";
+                                    font-size: parent.preferred-height * 44.7%;
+                                    font-family: Style.default-font-family;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                    color: Style.tab-font-color;
+                                }
                             }
                         }
                     }
@@ -167,7 +183,7 @@ component Review inherits VerticalLayout {
         }
     }
 
-    details := Rectangle {
+    Rectangle {
         height: parent.min-height * 22.4%;
 
         border-radius: 4px;
@@ -179,28 +195,26 @@ component Review inherits VerticalLayout {
             mouse-cursor: copy;
 
             clicked => {
-                details.copy-content();
+                details-content.copy-content();
                 copied-warnning.popup-and-hide();
-            }
-
-            details-content := TextEdit {
-                text: ReviewStatus.selected-task.content;
-                font-size: self.height * 14.4%;
-                width: 100%;
-                height: 100%;
-                opacity: 0.618;
-                horizontal-alignment: left;
-                enabled: false;
-                wrap: word-wrap;
             }
         }
 
-        animate opacity { duration: 236ms; }
+        details-content := TextEdit {
+            text: ReviewStatus.selected-task.content;
+            font-size: self.height * 14.4%;
+            width: 100%;
+            height: 100%;
+            opacity: 0.618;
+            horizontal-alignment: left;
+            enabled: false;
+            wrap: word-wrap;
 
-        function copy-content() {
-            details-content.select-all();
-            details-content.copy();
-            details-content.set-selection-offsets(0, 0);
+            function copy-content() {
+                details-content.select-all();
+                details-content.copy();
+                details-content.set-selection-offsets(0, 0);
+            }
         }
     }
 }

@@ -10,10 +10,7 @@ struct Task {
 
 global RichCheckBoxController { }
 
-global RichCheckBoxStatus {
-    in property <bool> del-button-enabled: false;
-    in property <length> del-button-x-position;
-}
+global RichCheckBoxStatus { }
 
 component RichCheckBox inherits HorizontalLayout {
     in property <Task> task;
@@ -43,7 +40,7 @@ component RichCheckBox inherits HorizontalLayout {
             text: finished ? "✔" : "";
             font-size: parent.height / 1.618;
             color: #56640E;
-            font-family: "Comic Sans MS";
+            font-family: Style.default-font-family;
             vertical-alignment: center;
         }
 
@@ -63,6 +60,7 @@ component RichCheckBox inherits HorizontalLayout {
     Rectangle {
         height: parent.height * 52.8%;
         width: (parent.width - check-box.width - del-button.width) * 95%;
+        cache-rendering-hint: true;
         Text {
             width: parent.width;
             height: parent.height;
@@ -71,8 +69,9 @@ component RichCheckBox inherits HorizontalLayout {
             text: root.task.content;
             color: #56640E;
             font-size: parent.height / 1.618;
-            font-family: "Comic Sans MS";
+            font-family: Style.default-font-family;
             overflow: elide;
+            cache-rendering-hint: true;
         }
 
         TouchArea {
@@ -98,17 +97,18 @@ component RichCheckBox inherits HorizontalLayout {
     }
 
     del := TouchArea {
-        enabled: RichCheckBoxStatus.del-button-enabled;
         width: parent.height * 61.8%;
         height: parent.height * 61.8%;
+
         clicked => {
             root.on-del();
         }
+
         del-button := Rectangle {
-            x: RichCheckBoxStatus.del-button-x-position;
+            x: parent.has-hover ? 1px : 0px;
             width: parent.height * 52.8%;
             height: parent.height * 52.8%;
-            opacity: 0.618;
+            opacity: parent.has-hover ? 0.619 : 0;
             border-width: 1px;
             border-color: #CCC;
             border-radius: 8px;
@@ -118,16 +118,14 @@ component RichCheckBox inherits HorizontalLayout {
             Text {
                 text: "X";
                 font-size: parent.height / 1.618;
+                font-family: Style.default-font-family;
                 color: #56640E;
                 vertical-alignment: center;
             }
 
             animate drop-shadow-color, opacity, x {
-                duration: 236ms;
-                easing: ease-in-out-quad;
-            }
-            init => {
-                RichCheckBoxStatus.del-button-x-position = root.width;
+                duration: 618ms;
+                easing: ease-out-circ;
             }
         }
     }
