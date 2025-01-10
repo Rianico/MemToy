@@ -2,7 +2,7 @@ import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, Chec
 
 import { Style, View, TabType,  ViewInfo } from "common.slint";
 
-import { CustomCheckBox, CustomCheckBoxController, Task } from "components/checkbox.slint";
+import { RichCheckBox, RichCheckBoxController, Task, RichCheckBoxStatus } from "components/checkbox.slint";
 import { AutoPopupWindow } from "components/popupwindow.slint";
 
 global ReviewController {
@@ -25,6 +25,45 @@ component Review inherits VerticalLayout {
     in property <[ViewInfo]> page-items;
 
     Rectangle {
+        ListView {
+            for task[idx] in ReviewStatus.tasks: VerticalLayout {
+                height: 14%;
+                width: parent.width * 98.382%;
+
+                content := RichCheckBox {
+                    task: task;
+                    idx: idx;
+                    height: parent.height * 90%;
+
+                    on-checked => {
+                        self.finished = !self.finished; // Toggle the finished state
+                            ReviewStatus.tasks[idx].finished = self.finished;
+                        ReviewController.toggle-task(task.id, self.finished);
+                    }
+                    on-select => {
+
+                        ReviewStatus.selected-task = task;
+                    }
+                    on-double-select => {
+                        ReviewStatus.selected-task = task;
+                        details.copy-content();
+                        copied-warnning.popup-and-hide()
+                    }
+                    on-del => {
+                        ReviewStatus.deleted-task = self.task;
+                        del-warning.show();
+                    }
+                    on-swipe-to-left => {
+                        RichCheckBoxStatus.del-button-enabled = true;
+                        RichCheckBoxStatus.del-button-x-position = 0;
+                    }
+                    on-swipe-to-right => {
+                        RichCheckBoxStatus.del-button-enabled = false;
+                        RichCheckBoxStatus.del-button-x-position = root.width;
+                    }
+                }
+            }
+        }
 
         copied-warnning := AutoPopupWindow {
             Rectangle {
@@ -46,7 +85,6 @@ component Review inherits VerticalLayout {
         del-warning := PopupWindow {
             x: parent.width * 26.4%;
             y: parent.height * 26.4%;
-            z: 10;
             height: root.height * 47.2%;
             width: root.width * 47.2%;
 
@@ -68,7 +106,7 @@ component Review inherits VerticalLayout {
                             horizontal-alignment: center;
                             vertical-alignment: top;
                             text: "Delete the task?";
-                            font-size: parent.height;
+                            font-size: parent.height / 1.618;
                             font-family: "Comic Sans MS";
                             font-weight: 800;
                         }
@@ -97,18 +135,21 @@ component Review inherits VerticalLayout {
                             height: parent.height * 52.8%;
                             width: parent.width * 33%;
                             clicked => {
-                                debug("yes -> delete");
-                                // ReviewController.del-task(ReviewStatus.deleted-task.id);
-                                // ReviewController.refresh();
+                                debug("[slint] delete task id: " + ReviewStatus.deleted-task.id);
+                                ReviewController.del-task(ReviewStatus.deleted-task.id);
+                                ReviewController.refresh();
                             }
                             Rectangle {
                                 height: parent.height;
                                 width: parent.width;
                                 border-radius: self.height * 14.6%;
-
                                 background: white;
                                 Text {
                                     text: "yes";
+                                    font-size: parent.height * 44.7%;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                    color: Style.tab-font-color;
                                 }
                             }
                         }
@@ -120,59 +161,6 @@ component Review inherits VerticalLayout {
                                 del-warning.close();
                             }
                         }
-                    }
-                }
-            }
-        }
-
-        // del-warnning := AutoPopupWindow {
-        //     Rectangle {
-        //         x: parent.width * 23.6%;
-        //         y: parent.height * 26.4%;
-        //         height: parent.height * 47.2%;
-        //         width: parent.width * 52.8%;
-        //         background: Style.tab-font-color;
-        //         border-radius: self.height * 14.6%;
-        //         opacity: 0.8;
-        //     }
-        // }
-
-        ListView {
-            for task[idx] in ReviewStatus.tasks: VerticalLayout {
-                height: 14%;
-                width: parent.width;
-
-                TouchArea {
-                    height: 90%;
-                    width: 90%;
-
-                    content := CustomCheckBox {
-                        task: task;
-                        idx: idx;
-                        height: root.height * 9%;
-                        padding: 8px;
-                        spacing: 8px;
-
-                        on-checked => {
-                            self.finished = !self.finished; // Toggle the finished state
-                            ReviewStatus.tasks[idx].finished = self.finished;
-                            ReviewController.toggle-task(task.id, self.finished);
-                        }
-
-                        on-del => {
-                            del-warning.show();
-                            ReviewStatus.deleted-task = self.task;
-                        }
-                    }
-
-                    clicked => {
-                        ReviewStatus.selected-task = task;
-                    }
-
-                    double-clicked => {
-                        ReviewStatus.selected-task = task;
-                        details.copy-content();
-                        copied-warnning.popup-and-hide()
                     }
                 }
             }
