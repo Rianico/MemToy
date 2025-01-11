@@ -1,11 +1,14 @@
 use std::rc::Rc;
 
 use log::{debug, error, info};
+use regex::Regex;
 use rusqlite::Connection;
 use slint::{ComponentHandle, ModelRc, VecModel};
+use url::Url;
 
 use super::data_management::{DataManagementType, General};
-use crate::{component::data_management::DB_FILE, MainWindow, ReviewController};
+use crate::component::data_management::DB_FILE;
+use crate::{MainWindow, ReviewController};
 
 pub(crate) struct ReviewTracker {
     management: DataManagementType,
@@ -38,36 +41,29 @@ impl ReviewTracker {
         let managenet = self.management;
         app.global::<ReviewController>()
             .on_review_today(move || match managenet {
-                DataManagementType::Simple(ref general) => {
-                    match general.query_today_review() {
-                        Ok(records) => {
-                            ModelRc::from(Rc::new(VecModel::from(records)))
-                        }
-                        Err(msg) => {
-                            error!("Query records failed, error: {msg}");
-                            ModelRc::default()
-                        }
+                DataManagementType::Simple(ref general) => match general.query_today_review() {
+                    Ok(records) => ModelRc::from(Rc::new(VecModel::from(records))),
+                    Err(msg) => {
+                        error!("Query records failed, error: {msg}");
+                        ModelRc::default()
                     }
-                }
+                },
             });
     }
 
     pub(crate) fn toggle_task(&self, app: &MainWindow) {
         let managenet = self.management;
         app.global::<ReviewController>()
-            .on_toggle_task(move |id, finished|{
-                match managenet {
-                    DataManagementType::Simple(ref general) => {
-                        match general.toggle_task(id, finished) {
-                            Ok(()) => {
-                                info!("change task finished status to {}", finished);
-                            }
-                            Err(msg) => {
-                                error!("change task finished status failed, err: {}", msg)
-                            }
+            .on_toggle_task(move |id, finished| match managenet {
+                DataManagementType::Simple(ref general) => {
+                    match general.toggle_task(id, finished) {
+                        Ok(()) => {
+                            info!("change task finished status to {}", finished);
                         }
-
-                    },
+                        Err(msg) => {
+                            error!("change task finished status failed, err: {}", msg)
+                        }
+                    }
                 }
             })
     }
@@ -75,19 +71,29 @@ impl ReviewTracker {
     pub(crate) fn del_task(&self, app: &MainWindow) {
         let managenet = self.management;
         app.global::<ReviewController>()
-            .on_del_task(move |id|{
-                match managenet {
-                    DataManagementType::Simple(ref general) => {
-                        match general.del_task(id) {
-                            Ok(()) => {
-                                info!("delete record and task, id: {id}");
-                            }
-                            Err(msg) => {
-                                error!("delete record and task failed, err: {}", msg)
-                            }
-                        }
+            .on_del_task(move |id| match managenet {
+                DataManagementType::Simple(ref general) => match general.del_task(id) {
+                    Ok(()) => {
+                        info!("delete record and task, id: {id}");
+                    }
+                    Err(msg) => {
+                        error!("delete record and task failed, err: {}", msg)
+                    }
+                },
+            })
+    }
 
-                    },
+    pub(crate) fn open_link(&self, app: &MainWindow) {
+        app.global::<ReviewController>().on_open_link(|content| {
+            let re = Regex::new(r"https?://[^\s]+").unwrap();
+            if let Some(url) = re.captures(content.as_str())
+                .and_then(|captured| captured.get(0))
+                .and_then(|url_match| Url::parse(url_match.as_str()).ok()) {
+                    if webbrowser::open(url.as_str()).is_ok() {
+                        info!("Successfully opened the URL in the browser.");
+                    } else {
+                        error!("Failed to open the URL.");
+                    }
                 }
             })
     }

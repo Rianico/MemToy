@@ -47,6 +47,14 @@ component Record inherits VerticalLayout {
                 self.select-all();
                 self.clear-selection();
             }
+
+            key-released(event) => {
+                if event.modifiers.control && event.text == Key.Return {
+                    save-button.save();
+                    return accept;
+                }
+                return accept;
+            }
         }
 
         save-warnning := AutoPopupWindow {
@@ -98,17 +106,21 @@ component Record inherits VerticalLayout {
                 color: Style.tab-font-color;
                 TouchArea {
                     clicked => {
-                        record-content.focus();
-                        save-button.recordd-res = RecordController.save-records(record-content.text, CalendarStatus.date);
-                        if save-button.recordd-res.success {
-                            ReviewController.refresh();
-                            record-content.clear-content();
-                        }
-                        save-warnning.popup-and-hide();
-                        debug("save function finish");
+                        save-button.save();
                     }
                 }
             }
+        }
+
+        function save() {
+            record-content.focus();
+            save-button.recordd-res = RecordController.save-records(record-content.text, CalendarStatus.date);
+            if save-button.recordd-res.success {
+                ReviewController.refresh();
+                record-content.clear-content();
+            }
+            save-warnning.popup-and-hide();
+            debug("save function finish");
         }
     }
 }

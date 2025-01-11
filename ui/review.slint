@@ -2,13 +2,21 @@ import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, Chec
 
 import { Style, View, TabType,  ViewInfo } from "common.slint";
 
-import { RichCheckBox, RichCheckBoxController, Task, RichCheckBoxStatus } from "components/checkbox.slint";
+import { RichCheckBox, RichCheckBoxController, RichCheckBoxStatus } from "components/checkbox.slint";
 import { AutoPopupWindow } from "components/popupwindow.slint";
+
+struct Task {
+    id: int,
+    content: string,
+    create-date: string,
+    finished: bool,
+}
 
 global ReviewController {
     pure callback review-today() -> [Task];
     callback toggle-task(id: int, finished: bool);
     callback del-task(id: int);
+    pure callback open-link(content: string);
 
     public function refresh() {
         ReviewStatus.tasks = ReviewController.review-today();
@@ -31,25 +39,26 @@ component Review inherits VerticalLayout {
                 width: parent.width * 98.382%;
 
                 content := RichCheckBox {
-                    task: task;
-                    idx: idx;
+                    in property <Task> cur-task: task;
+                    in property <int> cur-idx: idx;
+                    finished: self.cur-task.finished;
+                    content: self.cur-task.content;
                     height: parent.height * 90%;
 
                     on-checked => {
                         self.finished = !self.finished; // Toggle the finished state
                             ReviewStatus.tasks[idx].finished = self.finished;
-                        ReviewController.toggle-task(task.id, self.finished);
+                        ReviewController.toggle-task(cur-task.id, self.finished);
                     }
                     on-select => {
-                        ReviewStatus.selected-task = task;
+                        ReviewStatus.selected-task = cur-task;
                     }
                     on-double-select => {
-                        ReviewStatus.selected-task = task;
-                        details-content.copy-content();
-                        copied-warnning.popup-and-hide()
+                        ReviewStatus.selected-task = cur-task;
+                        ReviewController.open-link(cur-task.content);
                     }
                     on-del => {
-                        ReviewStatus.deleted-task = self.task;
+                        ReviewStatus.deleted-task = self.cur-task;
                         del-warning.show();
                     }
                     on-swipe-to-left => {

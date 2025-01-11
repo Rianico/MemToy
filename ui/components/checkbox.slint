@@ -1,21 +1,14 @@
 import { HorizontalBox, Palette } from "std-widgets.slint";
 import { Style } from "../common.slint";
 
-struct Task {
-    id: int,
-    content: string,
-    create-date: string,
-    finished: bool,
-}
 
 global RichCheckBoxController { }
 
 global RichCheckBoxStatus { }
 
 component RichCheckBox inherits HorizontalLayout {
-    in property <Task> task;
-    in property <int> idx;
-    in-out property <bool> finished: task.finished;
+    in-out property <bool> finished;
+    in property <string> content;
 
     callback on-checked();
     callback on-select();
@@ -66,7 +59,7 @@ component RichCheckBox inherits HorizontalLayout {
             height: parent.height;
             horizontal-alignment: left;
             vertical-alignment: center;
-            text: root.task.content;
+            text: root.content;
             color: #56640E;
             font-size: parent.height / 1.618;
             font-family: Style.default-font-family;
@@ -131,4 +124,4 @@ component RichCheckBox inherits HorizontalLayout {
     }
 }
 
-export { RichCheckBox, RichCheckBoxController, RichCheckBoxStatus, Task }
+export { RichCheckBox, RichCheckBoxController, RichCheckBoxStatus }
