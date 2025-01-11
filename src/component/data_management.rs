@@ -1,17 +1,29 @@
-use std::env;
 use std::fmt::Debug;
 use std::path::PathBuf;
 
+use cargo_metadata::MetadataCommand;
 use chrono::NaiveDate;
-use log::{debug, trace};
+use directories::ProjectDirs;
+use log::{debug, info, trace};
 use rusqlite::{params_from_iter, Connection, Params, Row};
 
 use crate::Task;
 
 thread_local! {
-    pub static DB_FILE: PathBuf = env::current_dir()
-                .map(|path| path.join("data").join("record.db"))
-                .expect("Get Current Dir failed.");
+    pub static DB_FILE: PathBuf = {
+        let metadata = MetadataCommand::new()
+            .no_deps() // Exclude dependency information (optional)
+            .exec()
+            .expect("can't find the root package name'");
+        let root_package = metadata .root_package()
+                .expect("can't find the root package'");
+        let db_path = ProjectDirs::from_path(root_package.name.as_str().into())
+                .expect("error occured when identify the data directory")
+                .data_dir()
+                .to_path_buf();
+        info!("db file path is {db_path:?}");
+        db_path
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -44,8 +56,8 @@ impl DataManagement {
         let mut con = DB_FILE.with(|db_file| Connection::open(db_file))?;
         let tx = con.transaction()?;
         // Use `INSERT OR REPLACE` to update or insert the record
-        tx.execute( "delete from records where id = ?",  [id])?;
-        tx.execute( "delete from tasks where id = ?",  [id])?;
+        tx.execute("delete from records where id = ?", [id])?;
+        tx.execute("delete from tasks where id = ?", [id])?;
         tx.commit()?;
         Ok(())
     }
@@ -147,11 +159,20 @@ impl General {
 
 #[cfg(test)]
 mod test {
+    use cargo_metadata::MetadataCommand;
     use directories::ProjectDirs;
 
     #[test]
-    fn directories_test() {
-        if let Some(proj_dirs) = ProjectDirs::from_path("MemToy".into()) {
+    fn directories_test() -> anyhow::Result<()> {
+        let metadata = MetadataCommand::new()
+            .no_deps() // Exclude dependency information (optional)
+            .exec()?;
+
+        // Get the root package (current project)
+        let root_package = metadata
+            .root_package()
+            .expect("can't find the root package'");
+        if let Some(proj_dirs) = ProjectDirs::from_path(root_package.name.as_str().into()) {
             // macOS: ~/Library/Application Support/com.mycompany.myapp/
             // Windows: C:\Users\<Username>\AppData\Roaming\MyCompany\MyApp\
             let data_dir = proj_dirs.data_dir();
@@ -164,5 +185,6 @@ mod test {
         } else {
             eprintln!("Could not determine project directories.");
         }
+        Ok(())
     }
 }
