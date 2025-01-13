@@ -3,7 +3,7 @@ name: Rust
 on:
   push:
     tags:
-      - v0.*
+      - "v*.*.*"
       
 env:
   CARGO_TERM_COLOR: always
