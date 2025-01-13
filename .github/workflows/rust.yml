@@ -1,0 +1,34 @@
+name: Rust
+
+on:
+  release:
+    types: [published]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - name: Build the project
+        run: cargo build --release --verbose
+      - name: Package the binary
+        run: |
+          mkdir -p release
+          cp target/release/MemToy release/
+          tar -czvf release/MemToy-macos.tar.gz -C release MemToy
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./release/MemToy-macos.tar.gz
+          asset_name: Memtoy-macos.tar.gz
+          asset_content_type: application/gzip
