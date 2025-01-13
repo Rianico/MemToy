@@ -1,9 +1,9 @@
 name: Rust
 
 on:
-  release:
-    types: [published]
-  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 
 env:
   CARGO_TERM_COLOR: always
@@ -27,10 +27,11 @@ jobs:
           mkdir -p release
           cp target/release/MemToy release/
           tar -czvf release/MemToy-macos.tar.gz -C release MemToy
-      - name: Upload release asset
-        uses: actions/upload-release-asset@v1
+      - name: Release
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./release/MemToy-macos.tar.gz
-          asset_name: Memtoy-macos.tar.gz
-          asset_content_type: application/gzip
+          files: |
+            ./release/MemToy-macos.tar.gz
+          # body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
