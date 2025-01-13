@@ -26,7 +26,7 @@ jobs:
         run: |
           mkdir -p release
           cp target/release/MemToy release/
-          tar -czvf release/MemToy-macos.tar.gz -C release MemToy
+          tar -czvf release/MemToy_${{ github.GITHUB_REF }}_${{ uname -m }}.tar.gz -C release MemToy
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
