@@ -38,6 +38,7 @@ component NavItem inherits Rectangle {
 component NavBar inherits HorizontalLayout {
     in property <[ViewInfo]> nav-items;
     out property <TabType> active-tab-type: nav-items[0].tab-type;
+    out property <int> active-tab-type-idx: 0;
 
     min-height: 36px;
     preferred-height: root.min-height * 9%;
@@ -48,7 +49,7 @@ component NavBar inherits HorizontalLayout {
         width: 27.6%;
     }
 
-    for item in nav-items: NavItem {
+    for item[idx] in nav-items: NavItem {
         view-info: item;
 
         min-height: parent.min-height;
@@ -59,13 +60,19 @@ component NavBar inherits HorizontalLayout {
         TouchArea {
             clicked => {
                 active-tab-type = item.tab-type;
-                CalendarStatus.date = CalendarController.get_date(0, 0, 0);
+                active-tab-type-idx = idx;
             }
         }
     }
 
     Rectangle {
         width: 27.6%;
+    }
+
+    public function switch-next-tab() {
+        debug("switch to next tab");
+        active-tab-type-idx = mod(active-tab-type-idx + 1, nav-items.length);
+        active-tab-type = nav-items[active-tab-type-idx].tab-type;
     }
 }
 

@@ -39,4 +39,17 @@ export component MainWindow inherits Window {
             page-items: View.view-info;
         }
     }
+
+    forward-focus: global-key-handler;
+    global-key-handler := FocusScope {
+        key-pressed(event) => {
+            debug(event);
+            // switch tab
+            // on mac, slint maps cmd to control, control to meta, which is subtle.
+            if (event.modifiers.control || event.modifiers.meta) && event.text == Key.Tab {
+                nav.switch-next-tab();
+            }
+            accept
+        }
+    }
 }

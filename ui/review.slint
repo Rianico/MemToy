@@ -80,6 +80,11 @@ component Review inherits VerticalLayout {
                 opacity: 0.8;
                 Text {
                     text: "Copy to Clipboard";
+                    width: parent.width;
+                    wrap: word-wrap;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    color: Style.tab-border-color;
                     font-size: parent.height * 14.6%;
                     font-family: Style.default-font-family;
                 }
