@@ -3,11 +3,10 @@ name: Rust
 on:
   push:
     tags:
-      - v*.*.*
+      - v0.*
       
 env:
   CARGO_TERM_COLOR: always
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build:
