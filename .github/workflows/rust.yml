@@ -8,7 +8,7 @@ on:
 env:
   GITHUB_TOKEN: ${{ secrets.GH_PAT }}
   CARGO_TERM_COLOR: always
-  PACKAGE_NAME: MemToy_${{ github.GITHUB_REF }}_$(uname -m)
+  ARCH: $(echo `uname -m`)
 
 jobs:
   build:
@@ -27,12 +27,12 @@ jobs:
         run: |
           mkdir -p release
           cp target/release/MemToy release/
-          tar -czvf release/$PACKAGE_NAME.tar.gz -C release MemToy
+          tar -czvf release/MemToy_${{ github.GITHUB_REF }}_$ARCH.tar.gz -C release MemToy
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ./release/$PACKAGE_NAME.tar.gz
+            ./release/MemToy_${{ github.GITHUB_REF }}_$ARCH.tar.gz
           # body_path: CHANGELOG.md
           draft: false
           prerelease: false
