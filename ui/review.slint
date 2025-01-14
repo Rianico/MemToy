@@ -18,6 +18,7 @@ global ReviewController {
     callback toggle-task(id: int, finished: bool);
     callback del-task(id: int);
     pure callback open-link(content: string);
+    pure callback update-task(id: int, content: string) -> RecordRes;
 
     public function refresh() {
         ReviewStatus.tasks = ReviewController.review-today();

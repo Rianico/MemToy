@@ -23,6 +23,7 @@ pub fn main() -> Result<(), slint::PlatformError> {
     review.review_today(&app);
     review.toggle_task(&app);
     review.del_task(&app);
+    review.update_task(&app);
     review.open_link(&app);
 
     app.run()

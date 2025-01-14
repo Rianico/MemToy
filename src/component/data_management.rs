@@ -52,6 +52,18 @@ impl DataManagement {
         Ok("save success")
     }
 
+    fn update_record(
+        id: i32,
+        record: impl AsRef<str>,
+    ) -> anyhow::Result<&'static str> {
+        let con = DB_FILE.with(|db_file| Connection::open(db_file))?;
+        con.execute(
+            "UPDATE records set content = ?1 where id = ?2",
+            (record.as_ref(), &id,),
+        )?;
+        Ok("save success")
+    }
+
     fn del_task(id: i32) -> anyhow::Result<()> {
         let mut con = DB_FILE.with(|db_file| Connection::open(db_file))?;
         let tx = con.transaction()?;
@@ -109,7 +121,15 @@ impl General {
         data: impl AsRef<str>,
         create_date: Option<NaiveDate>,
     ) -> Result<&'static str, anyhow::Error> {
-        DataManagement::save_records(data, create_date)
+        DataManagement::save_record(data, create_date)
+    }
+
+    pub fn update_record(
+        &self,
+        id: i32,
+        record: impl AsRef<str>,
+    ) -> Result<&'static str, anyhow::Error> {
+        DataManagement::update_record(id, record)
     }
 
     pub fn toggle_task(&self, id: i32, finished: bool) -> Result<(), anyhow::Error> {
