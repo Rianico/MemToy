@@ -67,13 +67,12 @@ jobs:
           
           echo "DMG 文件已生成：dist/$app_name.dmg"
           echo "sha256sum: $(shasum -a 256 dist/$app_name.dmg)"
-          rm -rf dist
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ./${{ env.PACKAGE_NAME }}.dmg
+            ./dist/${{ env.PACKAGE_NAME }}.dmg
           # body_path: CHANGELOG.md
           draft: false
           prerelease: false
