@@ -21,18 +21,60 @@ jobs:
         with:
           toolchain: stable
           override: true
+      - name: Cache Cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+      - name: Cache Cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-
       - name: Build the project
         run: cargo build --release --verbose
-      - name: Package the binary
+      - name: Create DMG
         run: |
-          mkdir -p release
-          cp target/release/MemToy release/
-          tar -czvf release/${{ env.PACKAGE_NAME }}.tar.gz -C release MemToy
+          # 创建 DMG 文件的脚本
+          APP_NAME=${{ env.PACKAGE_NAME }}
+          APP_PATH="target/release/$APP_NAME"
+          VOLUME_NAME="$APP_NAME"
+          DMG_NAME="$APP_NAME.dmg"
+          TEMP_DMG="temp.dmg"
+
+          # 创建临时目录
+          mkdir -p dist
+
+          # 复制可执行文件到临时目录
+          cp $APP_PATH dist/
+
+          # 创建 DMG 文件
+          hdiutil create -srcfolder dist -volname "$VOLUME_NAME" -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size 10m "$TEMP_DMG"
+
+          # 挂载 DMG 文件
+          DEVICE=$(hdiutil attach -readwrite -noverify -noautoopen "$TEMP_DMG" | egrep '^/dev/' | sed 1q | awk '{print $1}')
+
+          # 设置 DMG 文件的图标和背景（可选）
+          # 你可以根据需要自定义这些步骤
+
+          # 卸载 DMG 文件
+          hdiutil detach "$DEVICE"
+
+          # 转换为只读格式
+          hdiutil convert "$TEMP_DMG" -format UDZO -o "$DMG_NAME"
+
+          # 清理临时文件
+          rm -rf dist "$TEMP_DMG"
+
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ./release/${{ env.PACKAGE_NAME }}.tar.gz
+            ./${{ env.PACKAGE_NAME }}.dmg
           # body_path: CHANGELOG.md
           draft: false
           prerelease: false
