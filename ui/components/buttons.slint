@@ -1,0 +1,68 @@
+import { Style } from "../common.slint";
+
+component GeneralButton inherits Rectangle {
+    in property <string> button-name;
+
+    callback click-button();
+
+    background: Style.save-button-color;
+    border-radius: min(self.height / 1.618, 36px);
+
+    Text {
+        text: button-name;
+
+        width: 100%;
+        height: 100%;
+        font-size: parent.height * 44.7%;
+        font-family: Style.default-font-family;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+        color: Style.save-button-font-color;
+        TouchArea {
+            clicked => {
+                root.click-button();
+            }
+        }
+    }
+}
+
+component IconButton inherits Rectangle {
+    in property <image> icon-url;
+    in property <brush> icon-color: Style.icon-shadow-color;
+    in property <brush> icon-shadow-color: Style.icon-shadow-color;
+
+    border-radius: min(self.height / 1.618, 36px);
+    drop-shadow-blur: t.has-hover ? self.height / 1.618 / 1.618 : 0;
+
+    callback click-button();
+    callback hover-action();
+
+    Image {
+        source: icon-url;
+        image-fit: contain;
+        colorize <=> icon-color;
+        width: 95%;
+        height: 95%;
+        t := TouchArea {
+            clicked => {
+                root.click-button();
+            }
+            changed has-hover => {
+                root.hover-action();
+            }
+        }
+    }
+
+    states [
+        show-border when t.has-hover: {
+            drop-shadow-color: icon-shadow-color;
+        }
+    ]
+
+    animate drop-shadow-color {
+        duration: 618ms;
+        easing: ease-out;
+    }
+}
+
+export { GeneralButton, IconButton }
