@@ -1,7 +1,6 @@
 use std::fmt::Debug;
 use std::path::PathBuf;
 
-use cargo_metadata::MetadataCommand;
 use chrono::NaiveDate;
 use directories::ProjectDirs;
 use log::{debug, info, trace};
@@ -11,13 +10,7 @@ use crate::Task;
 
 thread_local! {
     pub static DB_FILE: PathBuf = {
-        let metadata = MetadataCommand::new()
-            .no_deps() // Exclude dependency information (optional)
-            .exec()
-            .expect("can't find the root package name'");
-        let root_package = metadata .root_package()
-                .expect("can't find the root package'");
-        let db_path = ProjectDirs::from_path(root_package.name.as_str().into())
+        let db_path = ProjectDirs::from_path("MemToy".into())
                 .expect("error occured when identify the data directory")
                 .data_dir()
                 .to_path_buf();
@@ -52,14 +45,11 @@ impl DataManagement {
         Ok("save success")
     }
 
-    fn update_record(
-        id: i32,
-        record: impl AsRef<str>,
-    ) -> anyhow::Result<&'static str> {
+    fn update_record(id: i32, record: impl AsRef<str>) -> anyhow::Result<&'static str> {
         let con = DB_FILE.with(|db_file| Connection::open(db_file))?;
         con.execute(
             "UPDATE records set content = ?1 where id = ?2",
-            (record.as_ref(), &id,),
+            (record.as_ref(), &id),
         )?;
         Ok("save success")
     }
