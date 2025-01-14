@@ -8,7 +8,7 @@ use url::Url;
 
 use super::data_management::{DataManagementType, General};
 use crate::component::data_management::DB_FILE;
-use crate::{MainWindow, ReviewController};
+use crate::{MainWindow, RecordRes, ReviewController};
 
 pub(crate) struct ReviewTracker {
     management: DataManagementType,
@@ -83,18 +83,52 @@ impl ReviewTracker {
             })
     }
 
-    pub(crate) fn open_link(&self, app: &MainWindow) {
-        app.global::<ReviewController>().on_open_link(|content| {
-            let re = Regex::new(r"https?://[^\s]+").unwrap();
-            if let Some(url) = re.captures(content.as_str())
-                .and_then(|captured| captured.get(0))
-                .and_then(|url_match| Url::parse(url_match.as_str()).ok()) {
-                    if webbrowser::open(url.as_str()).is_ok() {
-                        info!("Successfully opened the URL in the browser.");
-                    } else {
-                        error!("Failed to open the URL.");
+    pub(crate) fn update_task(&self, app: &MainWindow) {
+        let managenet = self.management;
+        app.global::<ReviewController>()
+            .on_update_task(move |id, content| {
+                let content = content.as_str();
+                debug!("update record: {content}, id: {id}");
+                if content.is_empty() {
+                    return RecordRes {
+                        success: false,
+                        msg: "text can't be empty".into(),
+                    };
+                }
+                match managenet {
+                    DataManagementType::Simple(ref general) => {
+                        match general.update_record(id, content) {
+                            Ok(msg) => RecordRes {
+                                success: true,
+                                msg: msg.into(),
+                            },
+                            Err(msg) => {
+                                error!("fail to update record, error: {msg:?}");
+                                RecordRes {
+                                    success: false,
+                                    msg: "save failed".into(),
+                                }
+                            }
+                        }
                     }
                 }
             })
+    }
+
+    pub(crate) fn open_link(&self, app: &MainWindow) {
+        app.global::<ReviewController>().on_open_link(|content| {
+            let re = Regex::new(r"https?://[^\s]+").unwrap();
+            if let Some(url) = re
+                .captures(content.as_str())
+                .and_then(|captured| captured.get(0))
+                .and_then(|url_match| Url::parse(url_match.as_str()).ok())
+            {
+                if webbrowser::open(url.as_str()).is_ok() {
+                    info!("Successfully opened the URL in the browser.");
+                } else {
+                    error!("Failed to open the URL.");
+                }
+            }
+        })
     }
 }

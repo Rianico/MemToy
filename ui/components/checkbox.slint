@@ -1,5 +1,6 @@
 import { HorizontalBox, Palette } from "std-widgets.slint";
 import { Style } from "../common.slint";
+import { IconButton } from "buttons.slint";
 
 
 global RichCheckBoxController { }
@@ -14,45 +15,50 @@ component RichCheckBox inherits HorizontalLayout {
     callback on-select();
     callback on-double-select();
     callback on-del();
+    callback on-edit();
     callback on-swipe-to-left();
     callback on-swipe-to-right();
 
     alignment: space-around;
+    spacing: self.height * 4%;
 
     // checked
     check-box := Rectangle {
-        width: parent.height * 52.8%;
+        width: parent.height * 32.6%;
         height: parent.height * 52.8%;
-        border-width: 1px;
-        border-color: #CCC;
-        border-radius: 8px;
-        background: finished ? #4CAF50 : #CCC;
 
-        // Display checkmark if finished
-        Text {
-            text: finished ? "✔" : "";
-            font-size: parent.height / 1.618;
-            color: #56640E;
-            font-family: Style.default-font-family;
+        Image {
+            colorize: Style.review-task-font-color;
+            image-fit: contain;
+            height: parent.height;
+            width: parent.width;
             vertical-alignment: center;
-        }
+            states [
+                checkedd when finished: {
+                    source: @image-url("../../ui/icons/ElCheck.svg");
+                }
+                unchecked when !finished: {
+                    source: @image-url("../../ui/icons/ElCheckEmpty.svg");
+                }
+            ]
 
-        TouchArea {
-            clicked => {
-                root.on-checked();
+            TouchArea {
+                clicked => {
+                    root.on-checked();
+                }
             }
-        }
 
-        animate background {
-            duration: 318ms;
-            easing: ease-in-out;
+            animate colorize {
+                duration: 318ms;
+                easing: ease-in-out;
+            }
         }
     }
 
     // content
     Rectangle {
         height: parent.height * 52.8%;
-        width: (parent.width - check-box.width - del-button.width) * 95%;
+        width: (parent.width - check-box.width - func-area.width) * 98%;
         cache-rendering-hint: true;
         Text {
             width: parent.width;
@@ -60,65 +66,95 @@ component RichCheckBox inherits HorizontalLayout {
             horizontal-alignment: left;
             vertical-alignment: center;
             text: root.content;
-            color: #56640E;
+            color: Style.review-task-font-color;
             font-size: parent.height / 1.618;
             font-family: Style.default-font-family;
             overflow: elide;
             cache-rendering-hint: true;
-        }
+            TouchArea {
+                height: parent.height;
+                width: parent.width;
 
-        TouchArea {
-            height: parent.height;
-            width: parent.width;
-
-            clicked => {
-                root.on-select();
-            }
-            double-clicked => {
-                root.on-double-select();
-            }
-            moved => {
-                if (self.enabled && self.pressed) {
-                    if self.mouse-x - self.pressed-x < -parent.width * 9% {
-                        root.on-swipe-to-left();
-                    } else if self.mouse-x - self.pressed-x > parent.width * 9% {
-                        root.on-swipe-to-right();
+                clicked => {
+                    root.on-select();
+                }
+                double-clicked => {
+                    root.on-double-select();
+                }
+                moved => {
+                    if (self.enabled && self.pressed) {
+                        if self.mouse-x - self.pressed-x < -parent.width * 9% {
+                            root.on-swipe-to-left();
+                        } else if self.mouse-x - self.pressed-x > parent.width * 9% {
+                            root.on-swipe-to-right();
+                        }
                     }
                 }
             }
         }
     }
 
-    del := TouchArea {
-        width: parent.height * 61.8%;
-        height: parent.height * 61.8%;
+    func-area := HorizontalBox {
+        height: parent.height * 47.2%;
+        width: edit.width + del.width;
 
-        clicked => {
-            root.on-del();
+        edit := IconButton {
+            property <bool> hovered: false;
+            icon-color: Style.review-task-font-color;
+            icon-url: @image-url("../../ui/icons/MynauiEdit.svg");
+
+            click-button => {
+                root.on-edit();
+            }
+            hover-action => {
+                hovered = !hovered;
+            }
+            states [
+                show when hovered: {
+                    opacity: 0.618;
+                }
+                hide when !hovered: {
+                    opacity: 0;
+                }
+            ]
+
+            opacity: 0;
+            width: parent.height;
+            height: parent.height;
+
+            animate opacity {
+                duration: 618ms;
+                easing: ease-out;
+            }
         }
 
-        del-button := Rectangle {
-            x: parent.has-hover ? 1px : 0px;
-            width: parent.height * 52.8%;
-            height: parent.height * 52.8%;
-            opacity: parent.has-hover ? 0.619 : 0;
-            border-width: 1px;
-            border-color: #CCC;
-            border-radius: 8px;
-            drop-shadow-color: #CCC;
-            drop-shadow-blur: 4px;
+        del := IconButton {
+            property <bool> hovered: false;
+            icon-color: Style.review-task-font-color;
+            icon-url: @image-url("../../ui/icons/SolarTrashBin2Outline.svg");
 
-            Text {
-                text: "X";
-                font-size: parent.height / 1.618;
-                font-family: Style.default-font-family;
-                color: #56640E;
-                vertical-alignment: center;
+            click-button => {
+                root.on-del();
             }
+            hover-action => {
+                hovered = !hovered;
+            }
+            states [
+                show when hovered: {
+                    opacity: 0.618;
+                }
+                hide when !hovered: {
+                    opacity: 0;
+                }
+            ]
 
-            animate drop-shadow-color, opacity, x {
+            opacity: 0;
+            width: parent.height;
+            height: parent.height;
+
+            animate opacity {
                 duration: 618ms;
-                easing: ease-out-circ;
+                easing: ease-out;
             }
         }
     }

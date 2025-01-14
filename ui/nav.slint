@@ -10,10 +10,8 @@ component NavItem inherits Rectangle {
 
     clip: true;
     border-radius: self.height / 1.618;
-    border-color: Style.tab-border-color;
+    border-color: Style.nav-border-color;
     border-width: 0.381px;
-    drop-shadow-color: is-active ? Style.active-tab-background : root.background;
-    drop-shadow-blur: is-active ? self.height / 1.618 / 1.618 : 0;
 
     Text {
         text: view-info.nav-bar-name;
@@ -22,7 +20,7 @@ component NavItem inherits Rectangle {
         font-family: Style.default-font-family;
         horizontal-alignment: center;
         vertical-alignment: center;
-        color: Style.tab-font-color;
+        color: Style.nav-item-font-color;
         animate color {
             duration: 381ms;
             easing: ease-out;
@@ -31,7 +29,7 @@ component NavItem inherits Rectangle {
 
     animate background, drop-shadow-blur {
         duration: 618ms;
-        easing: ease-in-out;
+        easing: ease-out-sine;
     }
 }
 
@@ -55,7 +53,8 @@ component NavBar inherits HorizontalLayout {
         min-height: parent.min-height;
         max-height: parent.max-height;
         min-width: parent.width * 0.448 / nav-items.length;
-        background: root.active-tab-type == item.tab-type ? Style.active-tab-background : Style.surface;
+        drop-shadow-color: root.active-tab-type == item.tab-type ? Style.nav-activate-background : Style.surface;
+        drop-shadow-blur: root.active-tab-type == item.tab-type ? self.height / 1.618 : 0;
 
         TouchArea {
             clicked => {

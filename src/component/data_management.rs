@@ -34,7 +34,7 @@ pub enum DataManagementType {
 pub struct DataManagement;
 
 impl DataManagement {
-    fn save_records(
+    fn save_record(
         data: impl AsRef<str>,
         create_date: Option<NaiveDate>,
     ) -> anyhow::Result<&'static str> {

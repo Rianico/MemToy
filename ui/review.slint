@@ -1,9 +1,10 @@
 import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, CheckBox, Palette, StandardButton, ScrollView } from "std-widgets.slint";
 
-import { Style, View, TabType,  ViewInfo } from "common.slint";
+import { Style, View, TabType, ViewInfo, RecordRes } from "common.slint";
 
 import { RichCheckBox, RichCheckBoxController, RichCheckBoxStatus } from "components/checkbox.slint";
 import { AutoPopupWindow } from "components/popupwindow.slint";
+import { GeneralButton, IconButton } from "components/buttons.slint";
 
 struct Task {
     id: int,
@@ -34,37 +35,38 @@ component Review inherits VerticalLayout {
 
     Rectangle {
         ListView {
-            for task[idx] in ReviewStatus.tasks: VerticalLayout {
-                height: 14%;
-                width: parent.width * 98.382%;
+            for task[idx] in ReviewStatus.tasks: RichCheckBox {
+                in property <Task> cur-task: task;
+                in property <int> cur-idx: idx;
+                finished: self.cur-task.finished;
+                content: self.cur-task.content;
 
-                content := RichCheckBox {
-                    in property <Task> cur-task: task;
-                    in property <int> cur-idx: idx;
-                    finished: self.cur-task.finished;
-                    content: self.cur-task.content;
-                    height: parent.height * 90%;
+                height: parent.height * 11%;
+                width: parent.width * 97%;
 
-                    on-checked => {
-                        self.finished = !self.finished; // Toggle the finished state
-                            ReviewStatus.tasks[idx].finished = self.finished;
-                        ReviewController.toggle-task(cur-task.id, self.finished);
-                    }
-                    on-select => {
-                        ReviewStatus.selected-task = cur-task;
-                    }
-                    on-double-select => {
-                        ReviewStatus.selected-task = cur-task;
-                        ReviewController.open-link(cur-task.content);
-                    }
-                    on-del => {
-                        ReviewStatus.deleted-task = self.cur-task;
-                        del-warning.show();
-                    }
-                    on-swipe-to-left => {
-                    }
-                    on-swipe-to-right => {
-                    }
+                on-checked => {
+                    self.finished = !self.finished;
+                    ReviewStatus.tasks[idx].finished = self.finished;
+                    ReviewController.toggle-task(cur-task.id, self.finished);
+                }
+                on-select => {
+                    ReviewStatus.selected-task = cur-task;
+                }
+                on-double-select => {
+                    ReviewStatus.selected-task = cur-task;
+                    ReviewController.open-link(cur-task.content);
+                }
+                on-del => {
+                    ReviewStatus.deleted-task = self.cur-task;
+                    del-warning.show();
+                }
+                on-edit => {
+                    ReviewStatus.selected-task = self.cur-task;
+                    edit-warning.show();
+                }
+                on-swipe-to-left => {
+                }
+                on-swipe-to-right => {
                 }
             }
         }
@@ -75,7 +77,7 @@ component Review inherits VerticalLayout {
                 y: parent.height * 38.2%;
                 height: parent.height * 23.6%;
                 width: parent.width * 23.6%;
-                background: Style.popup-win-color;
+                background: Style.popup-win-background;
                 border-radius: self.height * 14.6%;
                 opacity: 0.8;
                 Text {
@@ -84,7 +86,7 @@ component Review inherits VerticalLayout {
                     wrap: word-wrap;
                     horizontal-alignment: center;
                     vertical-alignment: center;
-                    color: Style.tab-border-color;
+                    color: Style.popup-win-font-color;
                     font-size: parent.height * 14.6%;
                     font-family: Style.default-font-family;
                 }
@@ -100,9 +102,9 @@ component Review inherits VerticalLayout {
             Rectangle {
                 height: 100%;
                 width: 100%;
-                background: Style.popup-win-color;
+                background: Style.popup-win-background;
                 border-radius: self.height * 14.6%;
-                opacity: 0.8;
+                opacity: 0.9;
 
                 VerticalBox {
                     height: parent.height;
@@ -115,6 +117,7 @@ component Review inherits VerticalLayout {
                             horizontal-alignment: center;
                             vertical-alignment: top;
                             text: "Delete the task?";
+                            color: Style.popup-win-font-color;
                             font-size: parent.height / 1.618;
                             font-family: Style.default-font-family;
                             font-weight: 800;
@@ -129,6 +132,7 @@ component Review inherits VerticalLayout {
                             horizontal-alignment: center;
                             width: parent.width * 90%;
                             text: ReviewStatus.deleted-task.content;
+                            color: Style.review-del-warn-font-color;
                             wrap: word-wrap;
                             font-size: parent.height * 14.6%;
                             font-family: Style.default-font-family;
@@ -141,55 +145,150 @@ component Review inherits VerticalLayout {
                         preferred-height: parent.height * 14.6%;
                         max-height: 64px;
 
-                        TouchArea {
-                            min-height: parent.min-height;
-                            preferred-height: parent.preferred-height;
-                            max-height: parent.max-height;
-                            width: self.preferred-height * 1.618;
-                            clicked => {
+                        // delete
+                        IconButton {
+                            icon-url: @image-url("../ui/icons/Fa6SolidCheck.svg");
+                            click-button => {
                                 debug("[slint] delete task id: " + ReviewStatus.deleted-task.id);
                                 ReviewController.del-task(ReviewStatus.deleted-task.id);
                                 ReviewStatus.selected-task = { id: 0 };
                                 ReviewController.refresh();
                             }
-                            Rectangle {
-                                preferred-height: parent.preferred-height;
-                                width: parent.width;
-                                border-radius: min(self.height / 1.618, 36px);
-                                background: Style.save-button-color;
-                                Text {
-                                    text: "yes";
-                                    font-size: parent.preferred-height * 44.7%;
-                                    font-family: Style.default-font-family;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
-                                    color: Style.tab-font-color;
-                                }
-                            }
-                        }
 
-                        TouchArea {
                             min-height: parent.min-height;
                             preferred-height: parent.preferred-height;
                             max-height: parent.max-height;
                             width: self.preferred-height * 1.618;
-                            clicked => {
+                            background: Style.popup-win-background;
+                        }
+
+                        // close
+                        IconButton {
+                            icon-url: @image-url("../ui/icons/PajamasClose.svg");
+
+                            click-button => {
                                 del-warning.close()
                             }
+
+                            min-height: parent.min-height;
+                            preferred-height: parent.preferred-height;
+                            max-height: parent.max-height;
+                            width: self.preferred-height * 1.618;
+                            background: Style.popup-win-background;
+                        }
+                    }
+                }
+            }
+        }
+
+        edit-warning := PopupWindow {
+            x: parent.width * 5%;
+            y: parent.height * 5%;
+            height: root.height * 90%;
+            width: root.width * 90%;
+            close-policy: PopupClosePolicy.no-auto-close;
+            Rectangle {
+                height: 100%;
+                width: 100%;
+                background: Style.popup-win-background;
+                border-radius: 4px;
+
+                VerticalBox {
+                    height: parent.height;
+                    width: parent.width;
+
+                    Rectangle {
+                        height: parent.height * 80%;
+                        width: parent.width * 98%;
+
+                        record-content := TextEdit {
+                            font-size: self.height * 4.56%;
+                            height: parent.height;
+                            width: parent.width;
+                            opacity: 0.618;
+                            horizontal-alignment: left;
+                            text: ReviewStatus.selected-task.content;
+                            placeholder-text: "enter your text...";
+
+                            function unfocus() {
+                                self.clear-focus();
+                            }
+
+                            key-released(event) => {
+                                if event.modifiers.control && event.text == Key.Return {
+                                    func-area.save();
+                                    return accept;
+                                }
+                                return accept;
+                            }
+                        }
+
+                        save-warnning := AutoPopupWindow {
+                            after-auto-close => {
+                                record-content.unfocus();
+                            }
+
                             Rectangle {
-                                preferred-height: parent.preferred-height;
-                                width: parent.width;
-                                border-radius: min(self.height / 1.618, 36px);
-                                background: Style.save-button-color;
+                                x: parent.width * 38.2%;
+                                y: parent.height * 38.2%;
+                                height: parent.height * 23.6%;
+                                width: parent.width * 23.6%;
+                                opacity: 0.9;
+                                background: Style.popup-win-background;
+                                border-radius: self.height * 14.6%;
                                 Text {
-                                    text: "no";
-                                    font-size: parent.preferred-height * 44.7%;
+                                    text: func-area.recordd-res.msg;
+                                    font-size: parent.height * 14.6%;
                                     font-family: Style.default-font-family;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
-                                    color: Style.tab-font-color;
                                 }
                             }
+                        }
+                    }
+
+                    func-area := HorizontalBox {
+                        in-out property <RecordRes> recordd-res;
+
+                        min-height: 48px;
+                        preferred-height: parent.height * 14.6%;
+                        max-height: 64px;
+                        alignment: space-around;
+
+                        // save
+                        IconButton {
+                            icon-url: @image-url("../ui/icons/Fa6SolidCheck.svg");
+                            click-button => {
+                                parent.save();
+                            }
+
+                            min-height: parent.min-height;
+                            preferred-height: parent.preferred-height;
+                            max-height: parent.max-height;
+                            width: self.preferred-height * 1.618;
+                            background: Style.popup-win-background;
+                        }
+
+                        // close
+                        IconButton {
+                            icon-url: @image-url("../ui/icons/PajamasClose.svg");
+
+                            click-button => {
+                                edit-warning.close();
+                            }
+
+                            min-height: parent.min-height;
+                            preferred-height: parent.preferred-height;
+                            max-height: parent.max-height;
+                            width: self.preferred-height * 1.618;
+                            background: Style.popup-win-background;
+                        }
+
+                        function save() {
+                            record-content.focus();
+                            self.recordd-res = ReviewController.update-task(ReviewStatus.selected-task.id, record-content.text);
+                            if self.recordd-res.success {
+                                ReviewController.refresh();
+                            }
+                            save-warnning.popup-and-hide();
                         }
                     }
                 }

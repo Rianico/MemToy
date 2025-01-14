@@ -1,16 +1,11 @@
 import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, CheckBox, Palette } from "std-widgets.slint";
 
-import { Style, View, TabType,  ViewInfo } from "common.slint";
+import { Style, View, TabType, ViewInfo, RecordRes } from "common.slint";
 
 import { Calendar, CalendarStatus } from "components/calendar.slint";
 import { AutoPopupWindow } from "components/popupwindow.slint";
 import { ReviewStatus, ReviewController } from "review.slint";
-
-
-struct RecordRes {
-        success: bool,
-        msg: string,
-}
+import { GeneralButton } from "components/buttons.slint";
 
 global RecordController {
     // @return true: success, false: failed
@@ -30,6 +25,7 @@ component Record inherits VerticalLayout {
         min-height: parent.min-height * 61.8%;
         preferred-height: parent.min-height * 70%;
         max-height: parent.min-height * 80%;
+        background: Style.details-background-color;
 
         record-content := TextEdit {
             font-size: self.height * 4.56%;
@@ -69,7 +65,7 @@ component Record inherits VerticalLayout {
                 height: parent.height * 23.6%;
                 width: parent.width * 23.6%;
                 opacity: 0.8;
-                background: Style.popup-win-color;
+                background: Style.popup-win-background;
                 border-radius: self.height * 14.6%;
                 Text {
                     text: save-button.recordd-res.msg;
@@ -88,28 +84,15 @@ component Record inherits VerticalLayout {
         max-height: 64px;
         alignment: center;
 
-        Rectangle {
-            background: Style.save-button-color;
-            border-radius: min(self.height / 1.618, 36px);
+        GeneralButton {
+            button-name: "save";
 
-            min-height: parent.min-height;
-            preferred-height: parent.preferred-height;
-            max-height: parent.max-height;
-
-            width: root.width * 14.6%;
-
-            Text {
-                font-size: min(parent.preferred-height * 44.7%, parent.max-height * 44.7%);
-                horizontal-alignment: center;
-                vertical-alignment: center;
-                text: "save";
-                color: Style.tab-font-color;
-                TouchArea {
-                    clicked => {
-                        save-button.save();
-                    }
-                }
+            click-button => {
+                save-button.save();
             }
+
+            height: parent.preferred-height;
+            width: root.width * 14.6%;
         }
 
         function save() {
@@ -125,4 +108,4 @@ component Record inherits VerticalLayout {
     }
 }
 
-export { Record, RecordStatus, RecordController }
+export { Record, RecordStatus, RecordController, RecordRes }
