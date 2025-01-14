@@ -39,36 +39,35 @@ jobs:
         run: cargo build --release --verbose
       - name: Create DMG
         run: |
-          # 创建 DMG 文件的脚本
-          APP_NAME=${{ env.PACKAGE_NAME }}
-          APP_PATH="target/release/$APP_NAME"
-          VOLUME_NAME="$APP_NAME"
-          DMG_NAME="$APP_NAME.dmg"
-          TEMP_DMG="temp.dmg"
+          app_name=${{ env.PACKAGE_NAME }}
+          
+          mkdir -p dist/$app_name.app/Contents/{MacOS,Resources}
+          cp target/release/$app_name dist/$app_name.app/Contents/MacOS/$app_name
 
-          # 创建临时目录
-          mkdir -p dist
+          cat <<EOF > dist/$app_name.app/Contents/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>$app_name</string>
+              <key>CFBundleIdentifier</key>
+              <string>tech.rianico.$app_name</string>
+              <key>CFBundleName</key>
+              <string>$app_name</string>
+              <key>CFBundleVersion</key>
+              <string>${{ github.ref_name }}</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${{ github.ref_name }}</string>
+          </dict>
+          </plist>
+          EOF
 
-          # 复制可执行文件到临时目录
-          cp $APP_PATH dist/
-
-          # 创建 DMG 文件
-          hdiutil create -srcfolder dist -volname "$VOLUME_NAME" -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size 10m "$TEMP_DMG"
-
-          # 挂载 DMG 文件
-          DEVICE=$(hdiutil attach -readwrite -noverify -noautoopen "$TEMP_DMG" | egrep '^/dev/' | sed 1q | awk '{print $1}')
-
-          # 设置 DMG 文件的图标和背景（可选）
-          # 你可以根据需要自定义这些步骤
-
-          # 卸载 DMG 文件
-          hdiutil detach "$DEVICE"
-
-          # 转换为只读格式
-          hdiutil convert "$TEMP_DMG" -format UDZO -o "$DMG_NAME"
-
-          # 清理临时文件
-          rm -rf dist "$TEMP_DMG"
+          hdiutil create -srcfolder dist/$app_name.app -volname "$app_name" -fs HFS+ -format UDZO -ov dist/$app_name.dmg
+          
+          echo "DMG 文件已生成：dist/$app_name.dmg"
+          echo "sha256sum: $(shasum -a 256 dist/$app_name.dmg)"
+          rm -rf dist
 
       - name: Release
         uses: softprops/action-gh-release@v2
