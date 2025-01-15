@@ -72,7 +72,7 @@ impl ReviewTracker {
         let managenet = self.management;
         app.global::<ReviewController>()
             .on_del_task(move |id| match managenet {
-                DataManagementType::Simple(ref general) => match general.del_task(id) {
+                DataManagementType::Simple(ref general) => match general.del_record_and_task(id) {
                     Ok(()) => {
                         info!("delete record and task, id: {id}");
                     }

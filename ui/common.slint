@@ -33,9 +33,9 @@ export global Style {
     out property <color> icon-shadow-color: #C6A368;
 }
 
-enum TabType { record, review }
+enum TabType { record, review, list }
 
-enum PageType { record-page, review-page }
+enum PageType { record-page, review-page, list-page }
 
 struct ViewInfo {
     nav-bar-name: string,
@@ -47,6 +47,7 @@ export global View {
     in property <[ViewInfo]> view-info: [
         { nav-bar-name: "Record", tab-type: TabType.record, page-type: PageType.record-page },
         { nav-bar-name: "Review", tab-type: TabType.review, page-type: PageType.review-page },
+        { nav-bar-name: "List", tab-type: TabType.list, page-type: PageType.list-page },
     ];
 }
 

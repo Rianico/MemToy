@@ -6,7 +6,7 @@ use directories::ProjectDirs;
 use log::{debug, info, trace};
 use rusqlite::{params_from_iter, Connection, Params, Row};
 
-use crate::Task;
+use crate::{Task, Record};
 
 thread_local! {
     pub static DB_FILE: PathBuf = {
@@ -54,7 +54,7 @@ impl DataManagement {
         Ok("save success")
     }
 
-    fn del_task(id: i32) -> anyhow::Result<()> {
+    fn del_record_and_task(id: i32) -> anyhow::Result<()> {
         let mut con = DB_FILE.with(|db_file| Connection::open(db_file))?;
         let tx = con.transaction()?;
         // Use `INSERT OR REPLACE` to update or insert the record
@@ -126,8 +126,8 @@ impl General {
         DataManagement::toggle_task(id, finished)
     }
 
-    pub fn del_task(&self, id: i32) -> Result<(), anyhow::Error> {
-        DataManagement::del_task(id)
+    pub fn del_record_and_task(&self, id: i32) -> Result<(), anyhow::Error> {
+        DataManagement::del_record_and_task(id)
     }
 
     pub fn query_today_review(&self) -> Result<Vec<Task>, anyhow::Error> {
@@ -165,36 +165,16 @@ impl General {
             })
         })
     }
-}
 
-#[cfg(test)]
-mod test {
-    use cargo_metadata::MetadataCommand;
-    use directories::ProjectDirs;
-
-    #[test]
-    fn directories_test() -> anyhow::Result<()> {
-        let metadata = MetadataCommand::new()
-            .no_deps() // Exclude dependency information (optional)
-            .exec()?;
-
-        // Get the root package (current project)
-        let root_package = metadata
-            .root_package()
-            .expect("can't find the root package'");
-        if let Some(proj_dirs) = ProjectDirs::from_path(root_package.name.as_str().into()) {
-            // macOS: ~/Library/Application Support/com.mycompany.myapp/
-            // Windows: C:\Users\<Username>\AppData\Roaming\MyCompany\MyApp\
-            let data_dir = proj_dirs.data_dir();
-            println!("Data Directory: {:?}", data_dir);
-
-            // macOS: ~/Library/Caches/com.mycompany.myapp/
-            // Windows: C:\Users\<Username>\AppData\Local\MyCompany\MyApp\cache\
-            let cache_dir = proj_dirs.cache_dir();
-            println!("Cache Directory: {:?}", cache_dir);
-        } else {
-            eprintln!("Could not determine project directories.");
-        }
-        Ok(())
+    pub(crate) fn query_all_records(&self) -> Result<Vec<Record>, anyhow::Error> {
+        debug!("general query");
+        DataManagement::query("SELECT id, content, create_date from records order by id desc", (), move |row| {
+            trace!("{row:?}");
+            Ok(Record {
+                id: row.get_unwrap(0),
+                content: row.get_unwrap::<_, String>(1).into(),
+                create_date: row.get_unwrap::<_, String>(2).into(),
+            })
+        })
     }
 }

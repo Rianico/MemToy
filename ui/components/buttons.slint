@@ -10,7 +10,6 @@ component GeneralButton inherits Rectangle {
 
     Text {
         text: button-name;
-
         width: 100%;
         height: 100%;
         font-size: parent.height * 44.7%;
@@ -37,19 +36,23 @@ component IconButton inherits Rectangle {
     callback click-button();
     callback hover-action();
 
-    Image {
-        source: icon-url;
-        image-fit: contain;
-        colorize <=> icon-color;
-        width: 95%;
-        height: 95%;
-        t := TouchArea {
-            clicked => {
-                root.click-button();
-            }
-            changed has-hover => {
-                root.hover-action();
-            }
+    t := TouchArea {
+        width: 100%;
+        height: 100%;
+        clicked => {
+            root.click-button();
+        }
+        changed has-hover => {
+            root.hover-action();
+        }
+        Image {
+            width: 61.8%;
+            height: 61.8%;
+            source: icon-url;
+            image-fit: contain;
+            colorize <=> icon-color;
+            horizontal-alignment: center;
+            vertical-alignment: center;
         }
     }
 

@@ -4,10 +4,12 @@ import { Style, View, TabType,  ViewInfo } from "common.slint";
 import { NavBar, NavItem, Calendar } from "nav.slint";
 import { Record } from "record.slint";
 import { Review } from "review.slint";
+import { List } from "list.slint";
 
 
 export { RecordController, RecordStatus } from "record.slint";
 export { ReviewController, ReviewStatus, Task } from "review.slint";
+export { ListController, ListStatus, Record } from "list.slint";
 export { CalendarController } from "components/calendar.slint";
 export { RichCheckBoxController } from "components/checkbox.slint";
 
@@ -35,6 +37,11 @@ export component MainWindow inherits Window {
         }
 
         if nav.active-tab-type == TabType.review: Review {
+            min-height: root.height * 80%;
+            page-items: View.view-info;
+        }
+
+        if nav.active-tab-type == TabType.list: List {
             min-height: root.height * 80%;
             page-items: View.view-info;
         }

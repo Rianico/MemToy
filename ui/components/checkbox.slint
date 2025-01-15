@@ -10,6 +10,7 @@ global RichCheckBoxStatus { }
 component RichCheckBox inherits HorizontalLayout {
     in-out property <bool> finished;
     in property <string> content;
+    in property <bool> check-visible: true;
 
     callback on-checked();
     callback on-select();
@@ -24,15 +25,17 @@ component RichCheckBox inherits HorizontalLayout {
 
     // checked
     check-box := Rectangle {
-        width: parent.height * 32.6%;
-        height: parent.height * 52.8%;
+        visible: check-visible;
+        height: parent.height;
+        width: check-visible ? self.height : 0;
 
         Image {
             colorize: Style.review-task-font-color;
             image-fit: contain;
-            height: parent.height;
+            height: parent.height * 61.8%;
             width: parent.width;
-            vertical-alignment: center;
+            vertical-alignment: bottom;
+            visible: check-visible;
             states [
                 checkedd when finished: {
                     source: @image-url("../../ui/icons/ElCheck.svg");
@@ -43,6 +46,7 @@ component RichCheckBox inherits HorizontalLayout {
             ]
 
             TouchArea {
+                enabled: check-visible;
                 clicked => {
                     root.on-checked();
                 }
@@ -57,14 +61,15 @@ component RichCheckBox inherits HorizontalLayout {
 
     // content
     Rectangle {
-        height: parent.height * 52.8%;
-        width: (parent.width - check-box.width - func-area.width) * 98%;
+        height: parent.height;
+        width: parent.width - check-box.width - edit.width - del.width;
         cache-rendering-hint: true;
+
         Text {
             width: parent.width;
             height: parent.height;
             horizontal-alignment: left;
-            vertical-alignment: center;
+            vertical-alignment: bottom;
             text: root.content;
             color: Style.review-task-font-color;
             font-size: parent.height / 1.618;
@@ -94,68 +99,63 @@ component RichCheckBox inherits HorizontalLayout {
         }
     }
 
-    func-area := HorizontalBox {
-        height: parent.height * 47.2%;
-        width: edit.width + del.width;
+    edit := IconButton {
+        property <bool> hovered: false;
+        icon-color: Style.review-task-font-color;
+        icon-url: @image-url("../../ui/icons/MynauiEdit.svg");
 
-        edit := IconButton {
-            property <bool> hovered: false;
-            icon-color: Style.review-task-font-color;
-            icon-url: @image-url("../../ui/icons/MynauiEdit.svg");
-
-            click-button => {
-                root.on-edit();
-            }
-            hover-action => {
-                hovered = !hovered;
-            }
-            states [
-                show when hovered: {
-                    opacity: 0.618;
-                }
-                hide when !hovered: {
-                    opacity: 0;
-                }
-            ]
-
-            opacity: 0;
-            width: parent.height;
-            height: parent.height;
-
-            animate opacity {
-                duration: 618ms;
-                easing: ease-out;
-            }
+        click-button => {
+            root.on-edit();
         }
-
-        del := IconButton {
-            property <bool> hovered: false;
-            icon-color: Style.review-task-font-color;
-            icon-url: @image-url("../../ui/icons/SolarTrashBin2Outline.svg");
-
-            click-button => {
-                root.on-del();
+        hover-action => {
+            hovered = !hovered;
+        }
+        states [
+            show when hovered: {
+                opacity: 0.618;
             }
-            hover-action => {
-                hovered = !hovered;
+            hide when !hovered: {
+                opacity: 0;
             }
-            states [
-                show when hovered: {
-                    opacity: 0.618;
-                }
-                hide when !hovered: {
-                    opacity: 0;
-                }
-            ]
+        ]
 
-            opacity: 0;
-            width: parent.height;
-            height: parent.height;
+        opacity: 0;
+        width: parent.height;
+        height: parent.height;
 
-            animate opacity {
-                duration: 618ms;
-                easing: ease-out;
+        animate opacity {
+            duration: 618ms;
+            easing: ease-out;
+        }
+    }
+
+    del := IconButton {
+        property <bool> hovered: false;
+        icon-color: Style.review-task-font-color;
+        icon-url: @image-url("../../ui/icons/SolarTrashBin2Outline.svg");
+
+        click-button => {
+            root.on-del();
+        }
+        hover-action => {
+            hovered = !hovered;
+        }
+        states [
+            show when hovered: {
+                opacity: 0.618;
             }
+            hide when !hovered: {
+                opacity: 0;
+            }
+        ]
+
+        opacity: 0;
+        width: parent.height;
+        height: parent.height;
+
+        animate opacity {
+            duration: 618ms;
+            easing: ease-out;
         }
     }
 }

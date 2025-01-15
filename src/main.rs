@@ -1,6 +1,7 @@
 mod component;
 
 use component::calendar::CalendarTracker;
+use component::list::ListTracker;
 use component::record::RecordTracker;
 use component::review::ReviewTracker;
 use slint::ComponentHandle;
@@ -25,6 +26,12 @@ pub fn main() -> Result<(), slint::PlatformError> {
     review.del_task(&app);
     review.update_task(&app);
     review.open_link(&app);
+
+    let list = ListTracker::new();
+    list.query_all_records(&app);
+    list.del_record(&app);
+    list.update_record(&app);
+    list.open_link(&app);
 
     app.run()
 }
