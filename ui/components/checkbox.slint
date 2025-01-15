@@ -34,7 +34,8 @@ component RichCheckBox inherits HorizontalLayout {
             image-fit: contain;
             height: parent.height * 61.8%;
             width: parent.width;
-            vertical-alignment: bottom;
+            horizontal-alignment: center;
+            vertical-alignment: center;
             visible: check-visible;
             states [
                 checkedd when finished: {
@@ -69,7 +70,7 @@ component RichCheckBox inherits HorizontalLayout {
             width: parent.width;
             height: parent.height;
             horizontal-alignment: left;
-            vertical-alignment: bottom;
+            vertical-alignment: center;
             text: root.content;
             color: Style.review-task-font-color;
             font-size: parent.height / 1.618;

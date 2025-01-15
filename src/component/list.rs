@@ -41,47 +41,45 @@ impl ListTracker {
 
     pub(crate) fn del_record(&self, app: &MainWindow) {
         let managenet = self.management;
-        app.global::<ListController>()
-            .on_del_record(move |id| match managenet {
-                DataManagementType::Simple(ref general) => match general.del_record_and_task(id) {
-                    Ok(()) => {
-                        info!("delete record and record, id: {id}");
-                    }
-                    Err(msg) => {
-                        error!("delete record and record failed, err: {}", msg)
-                    }
-                },
-            })
+        app.global::<ListController>().on_del_record(move |id| match managenet {
+            DataManagementType::Simple(ref general) => match general.del_record_and_task(id) {
+                Ok(()) => {
+                    info!("delete record and record, id: {id}");
+                }
+                Err(msg) => {
+                    error!("delete record and record failed, err: {}", msg)
+                }
+            },
+        })
     }
 
     pub(crate) fn update_record(&self, app: &MainWindow) {
         let managenet = self.management;
-        app.global::<ListController>()
-            .on_update_record(move |id, content| {
-                let content = content.as_str();
-                debug!("update record: {content}, id: {id}");
-                if content.is_empty() {
-                    return RecordRes {
-                        success: false,
-                        msg: "text can't be empty".into(),
-                    };
-                }
-                match managenet {
-                    DataManagementType::Simple(ref general) => general
-                        .update_record(id, content)
-                        .map(|msg| RecordRes {
-                            success: true,
-                            msg: msg.into(),
-                        })
-                        .unwrap_or_else(|msg| {
-                            error!("fail to update record, error: {msg:?}");
-                            RecordRes {
-                                success: false,
-                                msg: "save failed".into(),
-                            }
-                        }),
-                }
-            })
+        app.global::<ListController>().on_update_record(move |id, content| {
+            let content = content.as_str();
+            debug!("update record: {content}, id: {id}");
+            if content.is_empty() {
+                return RecordRes {
+                    success: false,
+                    msg: "text can't be empty".into(),
+                };
+            }
+            match managenet {
+                DataManagementType::Simple(ref general) => general
+                    .update_record(id, content)
+                    .map(|msg| RecordRes {
+                        success: true,
+                        msg: msg.into(),
+                    })
+                    .unwrap_or_else(|msg| {
+                        error!("fail to update record, error: {msg:?}");
+                        RecordRes {
+                            success: false,
+                            msg: "save failed".into(),
+                        }
+                    }),
+            }
+        })
     }
 
     pub(crate) fn open_link(&self, app: &MainWindow) {

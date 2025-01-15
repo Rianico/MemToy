@@ -5,6 +5,7 @@ import { Style, View, TabType, ViewInfo, RecordRes } from "common.slint";
 import { Calendar, CalendarStatus } from "components/calendar.slint";
 import { AutoPopupWindow } from "components/popupwindow.slint";
 import { ReviewStatus, ReviewController } from "review.slint";
+import { ListController } from "list.slint";
 import { GeneralButton } from "components/buttons.slint";
 
 global RecordController {
@@ -100,6 +101,7 @@ component Record inherits VerticalLayout {
             save-button.recordd-res = RecordController.save-records(record-content.text, CalendarStatus.date);
             if save-button.recordd-res.success {
                 ReviewController.refresh();
+                ListController.refresh();
                 record-content.clear-content();
             }
             save-warnning.popup-and-hide();

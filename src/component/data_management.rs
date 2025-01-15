@@ -6,7 +6,7 @@ use directories::ProjectDirs;
 use log::{debug, info, trace};
 use rusqlite::{params_from_iter, Connection, Params, Row};
 
-use crate::{Task, Record};
+use crate::{Record, Task};
 
 thread_local! {
     pub static DB_FILE: PathBuf = {
@@ -27,30 +27,18 @@ pub enum DataManagementType {
 pub struct DataManagement;
 
 impl DataManagement {
-    fn save_record(
-        data: impl AsRef<str>,
-        create_date: Option<NaiveDate>,
-    ) -> anyhow::Result<&'static str> {
+    fn save_record(data: impl AsRef<str>, create_date: Option<NaiveDate>) -> anyhow::Result<&'static str> {
         let con = DB_FILE.with(|db_file| Connection::open(db_file))?;
         con.execute(
             "INSERT INTO records (content, create_date) VALUES (?1, ?2)",
-            [
-                data.as_ref(),
-                create_date
-                    .unwrap_or(chrono::Local::now().date_naive())
-                    .to_string()
-                    .as_str(),
-            ],
+            [data.as_ref(), create_date.unwrap_or(chrono::Local::now().date_naive()).to_string().as_str()],
         )?;
         Ok("save success")
     }
 
     fn update_record(id: i32, record: impl AsRef<str>) -> anyhow::Result<&'static str> {
         let con = DB_FILE.with(|db_file| Connection::open(db_file))?;
-        con.execute(
-            "UPDATE records set content = ?1 where id = ?2",
-            (record.as_ref(), &id),
-        )?;
+        con.execute("UPDATE records set content = ?1 where id = ?2", (record.as_ref(), &id))?;
         Ok("save success")
     }
 
@@ -69,11 +57,7 @@ impl DataManagement {
         // Use `INSERT OR REPLACE` to update or insert the record
         con.execute(
             "INSERT OR REPLACE INTO tasks (id, create_date, finished) VALUES (?1, ?2, ?3)",
-            (
-                &id,
-                chrono::Local::now().date_naive().to_string().as_str(),
-                &finished,
-            ),
+            (&id, chrono::Local::now().date_naive().to_string().as_str(), &finished),
         )?;
         Ok(())
     }
@@ -87,11 +71,7 @@ impl DataManagement {
         let con = DB_FILE.with(|p| Connection::open(p))?;
         debug!("query: {}, params: {:?}", query_sql.as_ref(), params);
         let mut stmt = con.prepare(query_sql.as_ref())?;
-        debug!(
-            "column nums: {}, column names: {:?}",
-            stmt.column_count(),
-            stmt.column_names()
-        );
+        debug!("column nums: {}, column names: {:?}", stmt.column_count(), stmt.column_names());
         let mut rows = stmt.query_map(params, mapped_fn)?.peekable();
         trace!("{:?}", rows.peek());
         Ok(rows.map(|r| r.unwrap()).collect())
@@ -106,19 +86,11 @@ impl General {
         General {}
     }
 
-    pub fn save_records(
-        &self,
-        data: impl AsRef<str>,
-        create_date: Option<NaiveDate>,
-    ) -> Result<&'static str, anyhow::Error> {
+    pub fn save_records(&self, data: impl AsRef<str>, create_date: Option<NaiveDate>) -> Result<&'static str, anyhow::Error> {
         DataManagement::save_record(data, create_date)
     }
 
-    pub fn update_record(
-        &self,
-        id: i32,
-        record: impl AsRef<str>,
-    ) -> Result<&'static str, anyhow::Error> {
+    pub fn update_record(&self, id: i32, record: impl AsRef<str>) -> Result<&'static str, anyhow::Error> {
         DataManagement::update_record(id, record)
     }
 
@@ -142,9 +114,7 @@ impl General {
             (today - chrono::Duration::days(60)).to_string(),
         ];
         let condition = "?,".repeat(filter.len());
-        let condition = condition
-            .strip_suffix(",")
-            .unwrap_or_else(|| panic!("Strip suffix ',' for condition error"));
+        let condition = condition.strip_suffix(",").unwrap_or_else(|| panic!("Strip suffix ',' for condition error"));
         let query_sql = format!(
             "SELECT r.id, r.content, r.create_date, COALESCE(t.finished, false) AS finished 
             FROM records as r 
