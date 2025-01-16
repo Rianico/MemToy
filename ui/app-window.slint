@@ -1,19 +1,20 @@
 import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, CheckBox, Palette } from "std-widgets.slint";
 
-import { Style, View, TabType,  ViewInfo } from "common.slint";
+import { Style, View, TabType, ViewInfo } from "common.slint";
 import { NavBar, NavItem, Calendar } from "nav.slint";
-import { Record } from "record.slint";
-import { Review } from "review.slint";
-import { List } from "list.slint";
+import { Record } from "pages/record.slint";
+import { Review } from "pages/review.slint";
+import { List } from "pages/list.slint";
 
 
-export { RecordController, RecordStatus } from "record.slint";
-export { ReviewController, ReviewStatus, Task } from "review.slint";
-export { ListController, ListStatus, Record } from "list.slint";
+export { Task, Record } from "common.slint";
+
+export { RecordController, RecordStatus } from "pages/record-manager.slint";
+export { ReviewController, ReviewStatus } from "pages/review-manager.slint";
+export { ListController, ListStatus } from "pages/list-manager.slint";
+
 export { CalendarController } from "components/calendar.slint";
 export { RichCheckBoxController } from "components/checkbox.slint";
-
-
 
 export component MainWindow inherits Window {
     in-out property <string> name;

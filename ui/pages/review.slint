@@ -1,35 +1,15 @@
 import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, CheckBox, Palette, StandardButton, ScrollView } from "std-widgets.slint";
 
-import { Style, View, TabType, ViewInfo, RecordRes } from "common.slint";
+import { Style, View, TabType, ViewInfo, RecordRes, Task } from "../common.slint";
 
-import { RichCheckBox, RichCheckBoxController, RichCheckBoxStatus } from "components/checkbox.slint";
-import { AutoPopupWindow } from "components/popupwindow.slint";
-import { GeneralButton, IconButton } from "components/buttons.slint";
+import { RichCheckBox, RichCheckBoxController, RichCheckBoxStatus } from "../components/checkbox.slint";
+import { AutoPopupWindow } from "../components/popupwindow.slint";
+import { GeneralButton, IconButton } from "../components/buttons.slint";
+import { DefaultEditor } from "../components/editor.slint";
 
-struct Task {
-    id: int,
-    content: string,
-    create-date: string,
-    finished: bool,
-}
+import { ReviewStatus, ReviewController } from "review-manager.slint";
+import { GlobalManager } from "global-manager.slint";
 
-global ReviewController {
-    pure callback review-today() -> [Task];
-    callback toggle-task(id: int, finished: bool);
-    callback del-task(id: int);
-    pure callback open-link(content: string);
-    pure callback update-task(id: int, content: string) -> RecordRes;
-
-    public function refresh() {
-        ReviewStatus.tasks = ReviewController.review-today();
-    }
-}
-
-global ReviewStatus {
-    in property <[Task]> tasks: ReviewController.review-today();
-    in property <Task> selected-task;
-    in property <Task> deleted-task;
-}
 
 component Review inherits VerticalLayout {
     in property <[ViewInfo]> page-items;
@@ -43,7 +23,7 @@ component Review inherits VerticalLayout {
                 content: self.cur-task.content;
 
                 height: parent.height * 6.18%;
-                width: parent.width * 97%;
+                width: parent.width * 98.382%;
 
                 on-checked => {
                     self.finished = !self.finished;
@@ -148,12 +128,12 @@ component Review inherits VerticalLayout {
 
                         // delete
                         IconButton {
-                            icon-url: @image-url("../ui/icons/Fa6SolidCheck.svg");
+                            icon-url: Style.yes-icon;
                             click-button => {
                                 debug("[slint] delete task id: " + ReviewStatus.deleted-task.id);
                                 ReviewController.del-task(ReviewStatus.deleted-task.id);
                                 ReviewStatus.selected-task = { id: 0 };
-                                ReviewController.refresh();
+                                GlobalManager.refresh();
                             }
 
                             min-height: parent.min-height;
@@ -165,7 +145,7 @@ component Review inherits VerticalLayout {
 
                         // close
                         IconButton {
-                            icon-url: @image-url("../ui/icons/PajamasClose.svg");
+                            icon-url: Style.close-icon;
 
                             click-button => {
                                 del-warning.close()
@@ -183,118 +163,30 @@ component Review inherits VerticalLayout {
         }
 
         edit-warning := PopupWindow {
+            DefaultEditor {
+                content: ReviewStatus.selected-task.content;
+
+                on-save(content) => {
+                    self.record-res = ReviewController.update-task(ReviewStatus.selected-task.id, content);
+                    if self.record-res.success {
+                        GlobalManager.refresh();
+                        ReviewStatus.selected-task.content = content;
+                    }
+                }
+
+                on-close => {
+                    edit-warning.close();
+                }
+
+                height: parent.height;
+                width: parent.width;
+            }
+
             x: parent.width * 5%;
             y: parent.height * 5%;
             height: root.height * 90%;
             width: root.width * 90%;
             close-policy: PopupClosePolicy.no-auto-close;
-            Rectangle {
-                height: 100%;
-                width: 100%;
-                background: Style.popup-win-background;
-                border-radius: 4px;
-
-                VerticalBox {
-                    height: parent.height;
-                    width: parent.width;
-
-                    Rectangle {
-                        height: parent.height * 80%;
-                        width: parent.width * 98%;
-
-                        record-content := TextEdit {
-                            font-size: self.height * 4.56%;
-                            height: parent.height;
-                            width: parent.width;
-                            opacity: 0.618;
-                            horizontal-alignment: left;
-                            text: ReviewStatus.selected-task.content;
-                            placeholder-text: "enter your text...";
-
-                            function unfocus() {
-                                self.clear-focus();
-                            }
-
-                            key-released(event) => {
-                                if event.modifiers.control && event.text == Key.Return {
-                                    func-area.save();
-                                    return accept;
-                                }
-                                return accept;
-                            }
-                        }
-
-                        save-warnning := AutoPopupWindow {
-                            after-auto-close => {
-                                record-content.unfocus();
-                            }
-
-                            Rectangle {
-                                x: parent.width * 38.2%;
-                                y: parent.height * 38.2%;
-                                height: parent.height * 23.6%;
-                                width: parent.width * 23.6%;
-                                opacity: 0.9;
-                                background: Style.popup-win-background;
-                                border-radius: self.height * 14.6%;
-                                Text {
-                                    text: func-area.recordd-res.msg;
-                                    font-size: parent.height * 14.6%;
-                                    font-family: Style.default-font-family;
-                                }
-                            }
-                        }
-                    }
-
-                    func-area := HorizontalBox {
-                        in-out property <RecordRes> recordd-res;
-
-                        min-height: 48px;
-                        preferred-height: parent.height * 14.6%;
-                        max-height: 64px;
-                        alignment: space-around;
-
-                        // save
-                        IconButton {
-                            icon-url: @image-url("../ui/icons/Fa6SolidCheck.svg");
-                            click-button => {
-                                parent.save();
-                            }
-
-                            min-height: parent.min-height;
-                            preferred-height: parent.preferred-height;
-                            max-height: parent.max-height;
-                            width: self.preferred-height * 1.618;
-                            background: Style.popup-win-background;
-                        }
-
-                        // close
-                        IconButton {
-                            icon-url: @image-url("../ui/icons/PajamasClose.svg");
-
-                            click-button => {
-                                edit-warning.close();
-                            }
-
-                            min-height: parent.min-height;
-                            preferred-height: parent.preferred-height;
-                            max-height: parent.max-height;
-                            width: self.preferred-height * 1.618;
-                            background: Style.popup-win-background;
-                        }
-
-                        function save() {
-                            record-content.focus();
-                            self.recordd-res = ReviewController.update-task(ReviewStatus.selected-task.id, record-content.text);
-                            if self.recordd-res.success {
-                                ReviewController.refresh();
-                                ReviewStatus.selected-task.content = record-content.text;
-                            }
-                            save-warnning.popup-and-hide();
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -334,4 +226,4 @@ component Review inherits VerticalLayout {
     }
 }
 
-export { Review, ReviewController, ReviewStatus, Task }
+export { Review, Task }

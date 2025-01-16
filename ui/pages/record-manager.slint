@@ -1,0 +1,10 @@
+import { RecordRes } from "../common.slint";
+
+global RecordController {
+    // @return true: success, false: failed
+    pure callback save-records(string, string) -> RecordRes;
+}
+
+global RecordStatus { }
+
+export { RecordController, RecordStatus }

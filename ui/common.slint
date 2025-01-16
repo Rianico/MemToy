@@ -31,6 +31,13 @@ export global Style {
     out property <string> default-font-family: "Comic Sans MS";
 
     out property <color> icon-shadow-color: #C6A368;
+
+    out property <image> yes-icon: @image-url("icons/Fa6SolidCheck.svg");
+    out property <image> close-icon: @image-url("icons/PajamasClose.svg");
+    out property <image> edit-icon: @image-url("icons/MynauiEdit.svg");
+    out property <image> trashbin-icon: @image-url("icons/SolarTrashBin2Outline.svg");
+    out property <image> check-icon: @image-url("icons/ElCheck.svg");
+    out property <image> check-empty-icon: @image-url("icons/ElCheckEmpty.svg");
 }
 
 enum TabType { record, review, list }
@@ -43,7 +50,7 @@ struct ViewInfo {
     page-type: PageType,
 }
 
-export global View {
+global View {
     in property <[ViewInfo]> view-info: [
         { nav-bar-name: "Record", tab-type: TabType.record, page-type: PageType.record-page },
         { nav-bar-name: "Review", tab-type: TabType.review, page-type: PageType.review-page },
@@ -56,4 +63,17 @@ struct RecordRes {
         msg: string,
 }
 
-export { TabType, PageType, ViewInfo, RecordRes }
+struct Task {
+    id: int,
+    content: string,
+    create-date: string,
+    finished: bool,
+}
+
+struct Record {
+    id: int,
+    content: string,
+    create-date: string,
+}
+
+export { View, TabType, PageType, ViewInfo, RecordRes, Task, Record }

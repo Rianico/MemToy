@@ -39,10 +39,10 @@ component RichCheckBox inherits HorizontalLayout {
             visible: check-visible;
             states [
                 checkedd when finished: {
-                    source: @image-url("../../ui/icons/ElCheck.svg");
+                    source: Style.check-icon;
                 }
                 unchecked when !finished: {
-                    source: @image-url("../../ui/icons/ElCheckEmpty.svg");
+                    source: Style.check-empty-icon;
                 }
             ]
 
@@ -103,7 +103,7 @@ component RichCheckBox inherits HorizontalLayout {
     edit := IconButton {
         property <bool> hovered: false;
         icon-color: Style.review-task-font-color;
-        icon-url: @image-url("../../ui/icons/MynauiEdit.svg");
+        icon-url: Style.edit-icon;
 
         click-button => {
             root.on-edit();
@@ -116,11 +116,11 @@ component RichCheckBox inherits HorizontalLayout {
                 opacity: 0.618;
             }
             hide when !hovered: {
-                opacity: 0;
+                opacity: 0.381;
             }
         ]
 
-        opacity: 0;
+        opacity: 0.381;
         width: parent.height;
         height: parent.height;
 
@@ -133,7 +133,7 @@ component RichCheckBox inherits HorizontalLayout {
     del := IconButton {
         property <bool> hovered: false;
         icon-color: Style.review-task-font-color;
-        icon-url: @image-url("../../ui/icons/SolarTrashBin2Outline.svg");
+        icon-url: Style.trashbin-icon;
 
         click-button => {
             root.on-del();
@@ -146,11 +146,11 @@ component RichCheckBox inherits HorizontalLayout {
                 opacity: 0.618;
             }
             hide when !hovered: {
-                opacity: 0;
+                opacity: 0.381;
             }
         ]
 
-        opacity: 0;
+        opacity: 0.381;
         width: parent.height;
         height: parent.height;
 

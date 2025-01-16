@@ -1,0 +1,21 @@
+import { Task, RecordRes } from "../common.slint";
+
+global ReviewController {
+    pure callback review-today() -> [Task];
+    callback toggle-task(id: int, finished: bool);
+    callback del-task(id: int);
+    pure callback open-link(content: string);
+    pure callback update-task(id: int, content: string) -> RecordRes;
+
+    public function refresh() {
+        ReviewStatus.tasks = ReviewController.review-today();
+    }
+}
+
+global ReviewStatus {
+    in property <[Task]> tasks: ReviewController.review-today();
+    in property <Task> selected-task;
+    in property <Task> deleted-task;
+}
+
+export { ReviewController, ReviewStatus }

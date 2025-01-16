@@ -1,0 +1,108 @@
+import { VerticalBox, TextEdit, HorizontalBox } from "std-widgets.slint";
+import { AutoPopupWindow } from "popupwindow.slint";
+import { IconButton } from "buttons.slint";
+import { Style, RecordRes } from "../common.slint";
+
+component DefaultEditor inherits Rectangle {
+    in property <string> content;
+    in-out property <RecordRes> record-res;
+
+    callback on-save(content: string);
+    callback on-close();
+
+    height: 100%;
+    width: 100%;
+    background: Style.popup-win-background;
+    border-radius: 6px;
+
+    VerticalBox {
+        height: parent.height;
+        width: parent.width;
+
+        Rectangle {
+            height: parent.height * 80%;
+            width: parent.width * 98%;
+
+            record-content := TextEdit {
+                font-size: self.height * 4.56%;
+                height: parent.height;
+                width: parent.width;
+                opacity: 0.618;
+                horizontal-alignment: left;
+                text: content;
+                placeholder-text: "enter your text...";
+
+                function unfocus() {
+                    self.clear-focus();
+                }
+
+                key-released(event) => {
+                    if event.modifiers.control && event.text == Key.Return {
+                        save.click-button();
+                        return accept;
+                    }
+                    return accept;
+                }
+            }
+
+            save-warnning := AutoPopupWindow {
+                after-auto-close => {
+                    record-content.unfocus();
+                }
+
+                Rectangle {
+                    x: parent.width * 38.2%;
+                    y: parent.height * 38.2%;
+                    height: parent.height * 23.6%;
+                    width: parent.width * 23.6%;
+                    opacity: 0.9;
+                    background: Style.popup-win-background;
+                    border-radius: self.height * 14.6%;
+                    Text {
+                        text: record-res.msg;
+                        font-size: parent.height * 14.6%;
+                        font-family: Style.default-font-family;
+                    }
+                }
+            }
+        }
+
+        HorizontalBox {
+            min-height: 48px;
+            preferred-height: parent.height * 14.6%;
+            max-height: 64px;
+            alignment: space-around;
+
+            save := IconButton {
+                icon-url: Style.yes-icon;
+                click-button => {
+                    record-content.focus();
+                    root.on-save(record-content.text);
+                    save-warnning.popup-and-hide();
+                }
+
+                min-height: parent.min-height;
+                preferred-height: parent.preferred-height;
+                max-height: parent.max-height;
+                width: self.preferred-height * 1.618;
+                background: Style.popup-win-background;
+            }
+
+            IconButton {
+                icon-url: Style.close-icon;
+
+                click-button => {
+                    root.on-close();
+                }
+
+                min-height: parent.min-height;
+                preferred-height: parent.preferred-height;
+                max-height: parent.max-height;
+                width: self.preferred-height * 1.618;
+                background: Style.popup-win-background;
+            }
+        }
+    }
+}
+
+export { DefaultEditor }

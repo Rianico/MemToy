@@ -1,0 +1,20 @@
+import { Record, RecordRes } from "../common.slint";
+
+global ListController {
+    pure callback all-records() -> [Record];
+    callback del-record(id: int);
+    pure callback open-link(content: string);
+    pure callback update-record(id: int, content: string) -> RecordRes;
+
+    public function refresh() {
+        ListStatus.records = ListController.all-records();
+    }
+}
+
+global ListStatus {
+    in property <[Record]> records: ListController.all-records();
+    in property <Record> selected-record;
+    in property <Record> deleted-record;
+}
+
+export { ListController, ListStatus }

@@ -1,19 +1,15 @@
 import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, CheckBox, Palette } from "std-widgets.slint";
 
-import { Style, View, TabType, ViewInfo, RecordRes } from "common.slint";
+import { Style, View, TabType, ViewInfo, RecordRes } from "../common.slint";
 
-import { Calendar, CalendarStatus } from "components/calendar.slint";
-import { AutoPopupWindow } from "components/popupwindow.slint";
-import { ReviewStatus, ReviewController } from "review.slint";
-import { ListController } from "list.slint";
-import { GeneralButton } from "components/buttons.slint";
+import { Calendar, CalendarStatus } from "../components/calendar.slint";
+import { AutoPopupWindow } from "../components/popupwindow.slint";
+import { GeneralButton } from "../components/buttons.slint";
 
-global RecordController {
-    // @return true: success, false: failed
-    pure callback save-records(string, string) -> RecordRes;
-}
-
-global RecordStatus { }
+import { ReviewStatus, ReviewController } from "review-manager.slint";
+import { RecordStatus, RecordController } from "record-manager.slint";
+import { ListController } from "list-manager.slint";
+import { GlobalManager } from "global-manager.slint";
 
 component Record inherits VerticalLayout {
     in property <[ViewInfo]> page-items;
@@ -100,8 +96,7 @@ component Record inherits VerticalLayout {
             record-content.focus();
             save-button.recordd-res = RecordController.save-records(record-content.text, CalendarStatus.date);
             if save-button.recordd-res.success {
-                ReviewController.refresh();
-                ListController.refresh();
+                GlobalManager.refresh();
                 record-content.clear-content();
             }
             save-warnning.popup-and-hide();
@@ -110,4 +105,4 @@ component Record inherits VerticalLayout {
     }
 }
 
-export { Record, RecordStatus, RecordController, RecordRes }
+export { Record, RecordRes }

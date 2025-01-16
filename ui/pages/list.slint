@@ -1,33 +1,15 @@
 import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, CheckBox, Palette, StandardButton, ScrollView } from "std-widgets.slint";
 
-import { Style, View, TabType, ViewInfo, RecordRes } from "common.slint";
+import { Style, View, TabType, ViewInfo, RecordRes, Record } from "../common.slint";
 
-import { RichCheckBox, RichCheckBoxController, RichCheckBoxStatus } from "components/checkbox.slint";
-import { AutoPopupWindow } from "components/popupwindow.slint";
-import { GeneralButton, IconButton } from "components/buttons.slint";
+import { RichCheckBox, RichCheckBoxController, RichCheckBoxStatus } from "../components/checkbox.slint";
+import { AutoPopupWindow } from "../components/popupwindow.slint";
+import { GeneralButton, IconButton } from "../components/buttons.slint";
+import { DefaultEditor } from "../components/editor.slint";
 
-struct Record {
-    id: int,
-    content: string,
-    create-date: string,
-}
-
-global ListController {
-    pure callback all-records() -> [Record];
-    callback del-record(id: int);
-    pure callback open-link(content: string);
-    pure callback update-record(id: int, content: string) -> RecordRes;
-
-    public function refresh() {
-        ListStatus.records = ListController.all-records();
-    }
-}
-
-global ListStatus {
-    in property <[Record]> records: ListController.all-records();
-    in property <Record> selected-record;
-    in property <Record> deleted-record;
-}
+import { ReviewStatus, ReviewController } from "review-manager.slint";
+import { ListStatus, ListController } from "list-manager.slint";
+import { GlobalManager } from "global-manager.slint";
 
 component List inherits VerticalLayout {
     in property <[ViewInfo]> page-items;
@@ -41,7 +23,7 @@ component List inherits VerticalLayout {
                 content: self.cur-record.content;
 
                 height: parent.height * 6.18%;
-                width: parent.width * 97%;
+                width: parent.width * 98.382%;
 
                 on-select => {
                     ListStatus.selected-record = cur-record;
@@ -141,12 +123,12 @@ component List inherits VerticalLayout {
 
                         // delete
                         IconButton {
-                            icon-url: @image-url("../ui/icons/Fa6SolidCheck.svg");
+                            icon-url: Style.yes-icon;
                             click-button => {
                                 debug("[slint] delete record id: " + ListStatus.deleted-record.id);
                                 ListController.del-record(ListStatus.deleted-record.id);
                                 ListStatus.selected-record = { id: 0 };
-                                ListController.refresh();
+                                GlobalManager.refresh();
                             }
 
                             min-height: parent.min-height;
@@ -158,7 +140,7 @@ component List inherits VerticalLayout {
 
                         // close
                         IconButton {
-                            icon-url: @image-url("../ui/icons/PajamasClose.svg");
+                            icon-url: Style.close-icon;
 
                             click-button => {
                                 del-warning.close()
@@ -176,118 +158,30 @@ component List inherits VerticalLayout {
         }
 
         edit-warning := PopupWindow {
+            DefaultEditor {
+                content: ListStatus.selected-record.content;
+
+                on-save(content) => {
+                    self.record-res = ReviewController.update-task(ReviewStatus.selected-task.id, content);
+                    if self.record-res.success {
+                        GlobalManager.refresh();
+                        ReviewStatus.selected-task.content = content;
+                    }
+                }
+
+                on-close => {
+                    edit-warning.close();
+                }
+
+                height: parent.height;
+                width: parent.width;
+            }
+
             x: parent.width * 5%;
             y: parent.height * 5%;
             height: root.height * 90%;
             width: root.width * 90%;
             close-policy: PopupClosePolicy.no-auto-close;
-            Rectangle {
-                height: 100%;
-                width: 100%;
-                background: Style.popup-win-background;
-                border-radius: 4px;
-
-                VerticalBox {
-                    height: parent.height;
-                    width: parent.width;
-
-                    Rectangle {
-                        height: parent.height * 80%;
-                        width: parent.width * 98%;
-
-                        record-content := TextEdit {
-                            font-size: self.height * 4.56%;
-                            height: parent.height;
-                            width: parent.width;
-                            opacity: 0.618;
-                            horizontal-alignment: left;
-                            text: ListStatus.selected-record.content;
-                            placeholder-text: "enter your text...";
-
-                            function unfocus() {
-                                self.clear-focus();
-                            }
-
-                            key-released(event) => {
-                                if event.modifiers.control && event.text == Key.Return {
-                                    func-area.save();
-                                    return accept;
-                                }
-                                return accept;
-                            }
-                        }
-
-                        save-warnning := AutoPopupWindow {
-                            after-auto-close => {
-                                record-content.unfocus();
-                            }
-
-                            Rectangle {
-                                x: parent.width * 38.2%;
-                                y: parent.height * 38.2%;
-                                height: parent.height * 23.6%;
-                                width: parent.width * 23.6%;
-                                opacity: 0.9;
-                                background: Style.popup-win-background;
-                                border-radius: self.height * 14.6%;
-                                Text {
-                                    text: func-area.recordd-res.msg;
-                                    font-size: parent.height * 14.6%;
-                                    font-family: Style.default-font-family;
-                                }
-                            }
-                        }
-                    }
-
-                    func-area := HorizontalBox {
-                        in-out property <RecordRes> recordd-res;
-
-                        min-height: 48px;
-                        preferred-height: parent.height * 14.6%;
-                        max-height: 64px;
-                        alignment: space-around;
-
-                        // save
-                        IconButton {
-                            icon-url: @image-url("../ui/icons/Fa6SolidCheck.svg");
-                            click-button => {
-                                parent.save();
-                            }
-
-                            min-height: parent.min-height;
-                            preferred-height: parent.preferred-height;
-                            max-height: parent.max-height;
-                            width: self.preferred-height * 1.618;
-                            background: Style.popup-win-background;
-                        }
-
-                        // close
-                        IconButton {
-                            icon-url: @image-url("../ui/icons/PajamasClose.svg");
-
-                            click-button => {
-                                edit-warning.close();
-                            }
-
-                            min-height: parent.min-height;
-                            preferred-height: parent.preferred-height;
-                            max-height: parent.max-height;
-                            width: self.preferred-height * 1.618;
-                            background: Style.popup-win-background;
-                        }
-
-                        function save() {
-                            record-content.focus();
-                            self.recordd-res = ListController.update-record(ListStatus.selected-record.id, record-content.text);
-                            if self.recordd-res.success {
-                                ListController.refresh();
-                                ListStatus.selected-record.content = record-content.text;
-                            }
-                            save-warnning.popup-and-hide();
-                        }
-                    }
-                }
-            }
         }
     }
 

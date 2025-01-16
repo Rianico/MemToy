@@ -1,0 +1,9 @@
+import { ReviewController } from "review-manager.slint";
+import { ListController} from "list-manager.slint";
+
+export global GlobalManager {
+    public function refresh() {
+        ReviewController.refresh();
+        ListController.refresh();
+    }
+}
