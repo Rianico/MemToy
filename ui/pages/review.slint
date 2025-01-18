@@ -31,6 +31,7 @@ component Review inherits VerticalLayout {
                     ReviewController.toggle-task(cur-task.id, self.finished);
                 }
                 on-select => {
+                    details-content.set-selection-offsets(0, 0);
                     ReviewStatus.selected-task = cur-task;
                 }
                 on-double-select => {

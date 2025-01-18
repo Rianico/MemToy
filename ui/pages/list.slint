@@ -26,6 +26,7 @@ component List inherits VerticalLayout {
                 width: parent.width * 98.382%;
 
                 on-select => {
+                    details-content.set-selection-offsets(0, 0);
                     ListStatus.selected-record = cur-record;
                 }
                 on-double-select => {
