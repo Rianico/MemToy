@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::path::PathBuf;
 
-use chrono::NaiveDate;
+use chrono::{NaiveDate, NaiveTime};
 use directories::ProjectDirs;
 use log::{debug, info, trace};
 use rusqlite::{params_from_iter, Connection, Params, Row};
@@ -103,7 +103,11 @@ impl General {
     }
 
     pub fn query_today_review(&self) -> Result<Vec<Task>, anyhow::Error> {
-        let today = chrono::Local::now().date_naive();
+        let today = if chrono::Local::now().time() < NaiveTime::from_hms_opt(2, 0, 0).unwrap() {
+            chrono::Local::now().date_naive() - chrono::Duration::days(1)
+        } else {
+            chrono::Local::now().date_naive()
+        };
         let filter = [
             today.to_string(),
             (today - chrono::Duration::days(1)).to_string(),
