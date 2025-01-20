@@ -43,6 +43,7 @@ jobs:
           
           mkdir -p dist/$app_name.app/Contents/{MacOS,Resources}
           cp target/release/$app_name dist/$app_name.app/Contents/MacOS/$app_name
+          cp ./ui/images/memtoy.icns dist/$app_name.app/Contents/Resources
 
           cat <<EOF > dist/$app_name.app/Contents/Info.plist
           <?xml version="1.0" encoding="UTF-8"?>
@@ -59,6 +60,10 @@ jobs:
               <string>${{ github.ref_name }}</string>
               <key>CFBundleShortVersionString</key>
               <string>${{ github.ref_name }}</string>
+              <key>CFBundleIconFile</key>
+              <string>memtoy</string>
+              <key>NSHighResolutionCapable</key>
+              <true/>
           </dict>
           </plist>
           EOF
