@@ -122,7 +122,7 @@ impl General {
             ON t.id = r.id AND t.create_date = '{}'
             where r.create_date in ({})
             order by r.create_date, r.id asc",
-            chrono::Local::now().date_naive(),
+            Self::get_today(),
             condition
         );
         DataBacken::query(query_sql, params_from_iter(&filter), move |row| {
