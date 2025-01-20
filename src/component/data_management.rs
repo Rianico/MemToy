@@ -24,9 +24,9 @@ pub enum DataManagementType {
     Simple(General),
 }
 
-pub struct DataManagement;
+pub struct DataBacken;
 
-impl DataManagement {
+impl DataBacken {
     fn save_record(data: impl AsRef<str>, create_date: Option<NaiveDate>) -> anyhow::Result<&'static str> {
         let con = DB_FILE.with(|db_file| Connection::open(db_file))?;
         con.execute(
@@ -52,12 +52,12 @@ impl DataManagement {
         Ok(())
     }
 
-    fn toggle_task(id: i32, finished: bool) -> anyhow::Result<()> {
+    fn toggle_task(id: i32, create_date: impl AsRef<str>, finished: bool) -> anyhow::Result<()> {
         let con = DB_FILE.with(|db_file| Connection::open(db_file))?;
         // Use `INSERT OR REPLACE` to update or insert the record
         con.execute(
             "INSERT OR REPLACE INTO tasks (id, create_date, finished) VALUES (?1, ?2, ?3)",
-            (&id, chrono::Local::now().date_naive().to_string().as_str(), &finished),
+            (&id, create_date.as_ref(), &finished),
         )?;
         Ok(())
     }
@@ -87,27 +87,23 @@ impl General {
     }
 
     pub fn save_records(&self, data: impl AsRef<str>, create_date: Option<NaiveDate>) -> Result<&'static str, anyhow::Error> {
-        DataManagement::save_record(data, create_date)
+        DataBacken::save_record(data, create_date)
     }
 
     pub fn update_record(&self, id: i32, record: impl AsRef<str>) -> Result<&'static str, anyhow::Error> {
-        DataManagement::update_record(id, record)
+        DataBacken::update_record(id, record)
     }
 
     pub fn toggle_task(&self, id: i32, finished: bool) -> Result<(), anyhow::Error> {
-        DataManagement::toggle_task(id, finished)
+        DataBacken::toggle_task(id, Self::get_today().to_string(), finished)
     }
 
     pub fn del_record_and_task(&self, id: i32) -> Result<(), anyhow::Error> {
-        DataManagement::del_record_and_task(id)
+        DataBacken::del_record_and_task(id)
     }
 
     pub fn query_today_review(&self) -> Result<Vec<Task>, anyhow::Error> {
-        let today = if chrono::Local::now().time() < NaiveTime::from_hms_opt(2, 0, 0).unwrap() {
-            chrono::Local::now().date_naive() - chrono::Duration::days(1)
-        } else {
-            chrono::Local::now().date_naive()
-        };
+        let today = Self::get_today();
         let filter = [
             today.to_string(),
             (today - chrono::Duration::days(1)).to_string(),
@@ -129,7 +125,7 @@ impl General {
             chrono::Local::now().date_naive(),
             condition
         );
-        DataManagement::query(query_sql, params_from_iter(&filter), move |row| {
+        DataBacken::query(query_sql, params_from_iter(&filter), move |row| {
             trace!("{row:?}");
             Ok(Task {
                 id: row.get_unwrap(0),
@@ -142,7 +138,7 @@ impl General {
 
     pub(crate) fn query_all_records(&self) -> Result<Vec<Record>, anyhow::Error> {
         debug!("general query");
-        DataManagement::query("SELECT id, content, create_date from records order by id desc", (), move |row| {
+        DataBacken::query("SELECT id, content, create_date from records order by id desc", (), move |row| {
             trace!("{row:?}");
             Ok(Record {
                 id: row.get_unwrap(0),
@@ -150,5 +146,13 @@ impl General {
                 create_date: row.get_unwrap::<_, String>(2).into(),
             })
         })
+    }
+
+    fn get_today() -> NaiveDate {
+        if chrono::Local::now().time() < NaiveTime::from_hms_opt(2, 0, 0).unwrap() {
+            chrono::Local::now().date_naive() - chrono::Duration::days(1)
+        } else {
+            chrono::Local::now().date_naive()
+        }
     }
 }

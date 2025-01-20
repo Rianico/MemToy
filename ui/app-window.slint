@@ -18,7 +18,8 @@ export { RichCheckBoxController } from "components/checkbox.slint";
 
 export component MainWindow inherits Window {
     in-out property <string> name;
-    title: "MemToy";
+    title: @tr("MemToy");
+    icon: @image-url("images/a-crab-is-drinking-coffee-before-the-computer-at-n.png");
     min-width: 648px;
     min-height: 400px;
     preferred-height: 900px;
