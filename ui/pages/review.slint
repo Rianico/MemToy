@@ -21,6 +21,8 @@ component Review inherits VerticalLayout {
                 in property <int> cur-idx: idx;
                 finished: self.cur-task.finished;
                 content: self.cur-task.content;
+                edit-visible: ReviewStatus.edit-visible;
+                del-visible: ReviewStatus.del-visible;
 
                 height: parent.height * 6.18%;
                 width: parent.width * 98.382%;
@@ -47,8 +49,12 @@ component Review inherits VerticalLayout {
                     edit-warning.show();
                 }
                 on-swipe-to-left => {
+                    ReviewStatus.edit-visible = true;
+                    ReviewStatus.del-visible = true;
                 }
                 on-swipe-to-right => {
+                    ReviewStatus.edit-visible = false;
+                    ReviewStatus.del-visible = false;
                 }
             }
         }

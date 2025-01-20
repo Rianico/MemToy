@@ -16,6 +16,8 @@ global ReviewStatus {
     in property <[Task]> tasks: ReviewController.review-today();
     in property <Task> selected-task;
     in property <Task> deleted-task;
+    in property <bool> edit-visible;
+    in property <bool> del-visible;
 }
 
 export { ReviewController, ReviewStatus }

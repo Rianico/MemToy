@@ -11,6 +11,8 @@ component RichCheckBox inherits HorizontalLayout {
     in-out property <bool> finished;
     in property <string> content;
     in property <bool> check-visible: true;
+    in property <bool> edit-visible: true;
+    in property <bool> del-visible: true;
 
     callback on-checked();
     callback on-select();
@@ -104,6 +106,7 @@ component RichCheckBox inherits HorizontalLayout {
         property <bool> hovered: false;
         icon-color: Style.review-task-font-color;
         icon-url: Style.edit-icon;
+        visible: edit-visible;
 
         click-button => {
             root.on-edit();
@@ -134,6 +137,7 @@ component RichCheckBox inherits HorizontalLayout {
         property <bool> hovered: false;
         icon-color: Style.review-task-font-color;
         icon-url: Style.trashbin-icon;
+        visible: del-visible;
 
         click-button => {
             root.on-del();
