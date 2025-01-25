@@ -121,7 +121,7 @@ impl General {
             LEFT JOIN tasks t 
             ON t.id = r.id AND t.create_date = '{}'
             where r.create_date in ({})
-            order by r.create_date, r.id asc",
+            order by r.create_date desc, r.id desc",
             Self::get_today(),
             condition
         );

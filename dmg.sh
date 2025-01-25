@@ -5,7 +5,8 @@ app_name=MemToy
 mkdir -p dist/$app_name.app/Contents/{MacOS,Resources}
 
 # 复制可执行文件
-cp target/release/$app_name dist/$app_name.app/Contents/MacOS/$app_name
+cp target/debug/$app_name dist/$app_name.app/Contents/MacOS/$app_name
+cp ./ui/images/memtoy.icns dist/$app_name.app/Contents/Resources
 
 # 创建 Info.plist 文件
 cat <<EOF > dist/$app_name.app/Contents/Info.plist
@@ -15,14 +16,22 @@ cat <<EOF > dist/$app_name.app/Contents/Info.plist
 <dict>
     <key>CFBundleExecutable</key>
     <string>$app_name</string>
+    <key>CFBundleIconFile</key>
+    <string>memtoy.icns</string>
     <key>CFBundleIdentifier</key>
     <string>tech.rianico.$app_name</string>
     <key>CFBundleName</key>
     <string>$app_name</string>
-    <key>CFBundleVersion</key>
-    <string>0.2.1</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.2.1</string>
+    <string>1.0.2</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.2</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.15</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
 </dict>
 </plist>
 EOF
