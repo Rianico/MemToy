@@ -22,8 +22,8 @@ component List inherits VerticalLayout {
                 check-visible: false;
                 content: self.cur-record.content;
 
-                height: parent.height * 6.18%;
-                width: parent.width * 98.382%;
+                height: 5rem;
+                width: 96%;
 
                 on-select => {
                     details-content.set-selection-offsets(0, 0);
@@ -71,59 +71,59 @@ component List inherits VerticalLayout {
         }
 
         del-warning := PopupWindow {
-            x: parent.width * 26.4%;
-            y: parent.height * 26.4%;
-            height: root.height * 47.2%;
-            width: root.width * 47.2%;
+            x: parent.width * 5%;
+            y: parent.height * 5%;
+            height: root.height * 90%;
+            width: root.width * 90%;
 
             Rectangle {
-                height: 100%;
-                width: 100%;
                 background: Style.popup-win-background;
                 border-radius: self.height * 14.6%;
                 opacity: 0.9;
 
                 VerticalBox {
-                    height: parent.height;
-                    width: parent.width;
                     alignment: space-between;
 
                     Rectangle {
-                        height: parent.height * 14.6%;
+                        height: 12%;
                         Text {
                             horizontal-alignment: center;
-                            vertical-alignment: top;
+                            vertical-alignment: center;
                             text: "Delete the record?";
                             color: Style.popup-win-font-color;
-                            font-size: parent.height / 1.618;
+                            font-size: 2rem;
                             font-family: Style.default-font-family;
                             font-weight: 800;
+                            height: 100%;
+                            width: 100%;
                         }
                     }
 
-                    ScrollView {
-                        width: parent.width * 98%;
-                        height: parent.height * 52.8%;
-                        viewport-height: t.height;
-                        t := Text {
-                            horizontal-alignment: center;
-                            width: parent.width * 90%;
-                            text: ListStatus.deleted-record.content;
-                            color: Style.review-del-warn-font-color;
-                            wrap: word-wrap;
-                            font-size: parent.height * 14.6%;
-                            font-family: Style.default-font-family;
+                    Rectangle {
+                        height: 52.8%;
+                        background: Style.details-background-color;
+                        ScrollView {
+                            height: 100%;
+                            viewport-height: t.height;
+                            t := Text {
+                                horizontal-alignment: left;
+                                vertical-alignment: center;
+                                width: parent.width * 90%;
+                                text: ListStatus.deleted-record.content;
+                                color: Style.review-del-warn-font-color;
+                                wrap: word-wrap;
+                                font-size: 2rem;
+                                font-family: Style.default-font-family;
+                            }
                         }
                     }
 
                     HorizontalBox {
                         alignment: space-around;
-                        min-height: 48px;
-                        preferred-height: parent.height * 14.6%;
-                        max-height: 64px;
 
                         // delete
                         IconButton {
+                            height: 3rem;
                             icon-url: Style.yes-icon;
                             click-button => {
                                 debug("[slint] delete record id: " + ListStatus.deleted-record.id);
@@ -132,25 +132,18 @@ component List inherits VerticalLayout {
                                 GlobalManager.refresh();
                             }
 
-                            min-height: parent.min-height;
-                            preferred-height: parent.preferred-height;
-                            max-height: parent.max-height;
-                            width: self.preferred-height * 1.618;
                             background: Style.popup-win-background;
                         }
 
                         // close
                         IconButton {
+                            height: 3rem;
                             icon-url: Style.close-icon;
 
                             click-button => {
                                 del-warning.close()
                             }
 
-                            min-height: parent.min-height;
-                            preferred-height: parent.preferred-height;
-                            max-height: parent.max-height;
-                            width: self.preferred-height * 1.618;
                             background: Style.popup-win-background;
                         }
                     }
@@ -174,8 +167,8 @@ component List inherits VerticalLayout {
                     edit-warning.close();
                 }
 
-                height: parent.height;
-                width: parent.width;
+                height: 100%;
+                width: 100%;
             }
 
             x: parent.width * 5%;
@@ -187,7 +180,7 @@ component List inherits VerticalLayout {
     }
 
     Rectangle {
-        height: parent.min-height * 38.2%;
+        height: 38.2%;
 
         border-radius: 4px;
         padding: 4px;

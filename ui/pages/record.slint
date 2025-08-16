@@ -11,96 +11,93 @@ import { RecordStatus, RecordController } from "record-manager.slint";
 import { ListController } from "list-manager.slint";
 import { GlobalManager } from "global-manager.slint";
 
-component Record inherits VerticalLayout {
+component Record {
     in property <[ViewInfo]> page-items;
 
-    Calendar {
-        height: 14%;
-    }
+    VerticalBox {
+        height: 100%;
 
-    Rectangle {
-        min-height: parent.min-height * 61.8%;
-        preferred-height: parent.min-height * 70%;
-        max-height: parent.min-height * 80%;
-        background: Style.details-background-color;
+        Calendar {
+            height: 14%;
+        }
 
-        record-content := TextEdit {
-            font-size: self.height * 4.56%;
-            width: 100%;
-            height: 100%;
-            opacity: 0.618;
-            horizontal-alignment: left;
-            placeholder-text: "enter your text...";
+        Rectangle {
+            height: 61.8%;
+            background: Style.details-background-color;
 
-            function unfocus() {
-                self.clear-focus();
-            }
+            record-content := TextEdit {
+                font-size: 2.5rem;
+                width: 100%;
+                height: 100%;
+                opacity: 0.618;
+                horizontal-alignment: left;
+                placeholder-text: "enter your text...";
 
-            function clear-content() {
-                self.select-all();
-                self.clear-selection();
-            }
+                function unfocus() {
+                    self.clear-focus();
+                }
 
-            key-released(event) => {
-                if event.modifiers.control && event.text == Key.Return {
-                    save-button.save();
+                function clear-content() {
+                    self.select-all();
+                    self.clear-selection();
+                }
+
+                key-released(event) => {
+                    if event.modifiers.control && event.text == Key.Return {
+                        save-button.save();
+                        return accept;
+                    }
                     return accept;
                 }
-                return accept;
-            }
-        }
-
-        save-warnning := AutoPopupWindow {
-
-            after-auto-close => {
-                record-content.unfocus();
             }
 
-            Rectangle {
-                x: parent.width * 38.2%;
-                y: parent.height * 38.2%;
-                height: parent.height * 23.6%;
-                width: parent.width * 23.6%;
-                opacity: 0.8;
-                background: Style.popup-win-background;
-                border-radius: self.height * 14.6%;
-                Text {
-                    text: save-button.recordd-res.msg;
-                    font-size: parent.height * 14.6%;
-                    font-family: Style.default-font-family;
+            save-warnning := AutoPopupWindow {
+                after-auto-close => {
+                    record-content.unfocus();
+                }
+
+                Rectangle {
+                    x: parent.width * 38.2%;
+                    y: parent.height * 38.2%;
+                    height: parent.height * 23.6%;
+                    width: parent.width * 23.6%;
+                    opacity: 0.8;
+                    background: Style.popup-win-background;
+                    border-radius: self.height * 14.6%;
+                    Text {
+                        text: save-button.recordd-res.msg;
+                        font-size: parent.height * 14.6%;
+                        font-family: Style.default-font-family;
+                    }
                 }
             }
         }
-    }
 
-    save-button := HorizontalBox {
-        in-out property <RecordRes> recordd-res;
+        save-button := HorizontalBox {
+            in-out property <RecordRes> recordd-res;
 
-        min-height: 36px;
-        preferred-height: parent.min-height * 6.18%;
-        max-height: 64px;
-        alignment: center;
+            height: 6.18%;
+            alignment: center;
 
-        GeneralButton {
-            button-name: "save";
+            GeneralButton {
+                width: 10rem;
+                button-name: "save";
+                button-font-size: 1.5rem;
 
-            click-button => {
-                save-button.save();
+                click-button => {
+                    save-button.save();
+                }
             }
 
-            height: parent.preferred-height;
-            width: root.width * 14.6%;
-        }
-
-        function save() {
-            record-content.focus();
-            save-button.recordd-res = RecordController.save-records(record-content.text, CalendarStatus.date);
-            if save-button.recordd-res.success {
-                GlobalManager.refresh();
-                record-content.clear-content();
+            function save() {
+                record-content.focus();
+                save-button.recordd-res = RecordController.save-records(record-content.text, CalendarStatus.date);
+                if save-button.recordd-res.success {
+                    GlobalManager.refresh();
+                    record-content.clear-content();
+                }
+                save-warnning.popup-and-hide();
             }
-            save-warnning.popup-and-hide();
-            debug("save function finish");
         }
     }
 }

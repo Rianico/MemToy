@@ -20,31 +20,25 @@ export component MainWindow inherits Window {
     in-out property <string> name;
     title: @tr("MemToy");
     icon: @image-url("images/a-crab-is-drinking-coffee-before-the-computer-at-n.png");
-    min-width: 648px;
-    min-height: 400px;
-    preferred-height: 900px;
-    preferred-width: 1254px;
+    min-width: 1747px;
+    min-height: 1080px;
     background: Style.surface;
 
     VerticalBox {
         nav := NavBar {
-            min-height: 36px;
-            width: 100%;
+            height: 2.618%;
             nav-items: View.view-info;
         }
 
         if nav.active-tab-type == TabType.record: record := Record {
-            min-height: root.height * 80%;
             page-items: View.view-info;
         }
 
         if nav.active-tab-type == TabType.review: Review {
-            min-height: root.height * 80%;
             page-items: View.view-info;
         }
 
         if nav.active-tab-type == TabType.list: List {
-            min-height: root.height * 80%;
             page-items: View.view-info;
         }
     }
@@ -54,8 +48,10 @@ export component MainWindow inherits Window {
         key-pressed(event) => {
             // switch tab
             // on mac, slint maps cmd to control, control to meta, which is subtle.
-            if (event.modifiers.control || event.modifiers.meta) && event.text == Key.Tab {
-                nav.switch-next-tab();
+            if (event.modifiers.control || event.modifiers.meta) && event.modifiers.shift && event.text == Key.Tab {
+                nav.switch-tab(-1);
+            } else if (event.modifiers.control || event.modifiers.meta) && event.text == Key.Tab {
+                nav.switch-tab(1);
             }
             accept
         }

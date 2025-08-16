@@ -1,8 +1,8 @@
 [package]
-name = "MemToy"
-version = "0.2.1"
 build = "build.rs"
 edition = "2021"
+name = "MemToy"
+version = "0.2.1"
 
 [dependencies]
 anyhow = "1.0.94"
@@ -13,16 +13,16 @@ log = { version = "0.4.22" }
 rand = "0.8"
 regex = "1.11.1"
 rusqlite = "0.32.1"
-slint = "1.9.1"
+slint = "1.12.1"
 url = "2.5.4"
 webbrowser = "1.0.3"
 
 [profile.release]
-strip = true
-panic = "abort"
+codegen-units = 1
 lto = true
 opt-level = "z"
-codegen-units = 1
+panic = "abort"
+strip = true
 
 [build-dependencies]
-slint-build = "1.9.1"
+slint-build = "1.12.1"

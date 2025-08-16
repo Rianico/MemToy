@@ -16,17 +16,17 @@ component DefaultEditor inherits Rectangle {
     border-radius: 6px;
 
     VerticalBox {
-        height: parent.height;
-        width: parent.width;
+        height: 100%;
+        width: 100%;
 
         Rectangle {
-            height: parent.height * 80%;
-            width: parent.width * 98%;
+            height: 80%;
+            width: 98%;
 
             record-content := TextEdit {
                 font-size: self.height * 4.56%;
-                height: parent.height;
-                width: parent.width;
+                height: 100%;
+                width: 100%;
                 opacity: 0.618;
                 horizontal-alignment: left;
                 text: content;
@@ -68,9 +68,7 @@ component DefaultEditor inherits Rectangle {
         }
 
         HorizontalBox {
-            min-height: 48px;
-            preferred-height: parent.height * 14.6%;
-            max-height: 64px;
+            height: 5rem;
             alignment: space-around;
 
             save := IconButton {
@@ -81,10 +79,6 @@ component DefaultEditor inherits Rectangle {
                     save-warnning.popup-and-hide();
                 }
 
-                min-height: parent.min-height;
-                preferred-height: parent.preferred-height;
-                max-height: parent.max-height;
-                width: self.preferred-height * 1.618;
                 background: Style.popup-win-background;
             }
 
@@ -95,10 +89,6 @@ component DefaultEditor inherits Rectangle {
                     root.on-close();
                 }
 
-                min-height: parent.min-height;
-                preferred-height: parent.preferred-height;
-                max-height: parent.max-height;
-                width: self.preferred-height * 1.618;
                 background: Style.popup-win-background;
             }
         }

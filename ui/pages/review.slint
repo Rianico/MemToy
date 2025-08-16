@@ -11,7 +11,7 @@ import { ReviewStatus, ReviewController } from "review-manager.slint";
 import { GlobalManager } from "global-manager.slint";
 
 
-component Review inherits VerticalLayout {
+component Review inherits VerticalBox {
     in property <[ViewInfo]> page-items;
 
     Rectangle {
@@ -24,8 +24,8 @@ component Review inherits VerticalLayout {
                 edit-visible: ReviewStatus.edit-visible;
                 del-visible: ReviewStatus.del-visible;
 
-                height: parent.height * 6.18%;
-                width: parent.width * 98.382%;
+                height: 5rem;
+                width: 96%;
 
                 on-checked => {
                     self.finished = !self.finished;
@@ -82,59 +82,59 @@ component Review inherits VerticalLayout {
         }
 
         del-warning := PopupWindow {
-            x: parent.width * 26.4%;
-            y: parent.height * 26.4%;
-            height: root.height * 47.2%;
-            width: root.width * 47.2%;
+            x: parent.width * 5%;
+            y: parent.height * 5%;
+            height: root.height * 90%;
+            width: root.width * 90%;
 
             Rectangle {
-                height: 100%;
-                width: 100%;
                 background: Style.popup-win-background;
                 border-radius: self.height * 14.6%;
                 opacity: 0.9;
 
                 VerticalBox {
-                    height: parent.height;
-                    width: parent.width;
                     alignment: space-between;
 
                     Rectangle {
-                        height: parent.height * 14.6%;
+                        height: 12%;
                         Text {
                             horizontal-alignment: center;
                             vertical-alignment: top;
                             text: "Delete the task?";
                             color: Style.popup-win-font-color;
-                            font-size: parent.height / 1.618;
+                            font-size: 2rem;
                             font-family: Style.default-font-family;
                             font-weight: 800;
+                            height: 100%;
+                            width: 100%;
                         }
                     }
 
-                    ScrollView {
-                        width: parent.width * 98%;
-                        height: parent.height * 52.8%;
-                        viewport-height: t.height;
-                        t := Text {
-                            horizontal-alignment: center;
-                            width: parent.width * 90%;
-                            text: ReviewStatus.deleted-task.content;
-                            color: Style.review-del-warn-font-color;
-                            wrap: word-wrap;
-                            font-size: parent.height * 14.6%;
-                            font-family: Style.default-font-family;
+                    Rectangle {
+                        height: 52.8%;
+                        background: Style.details-background-color;
+                        ScrollView {
+                            width: 98%;
+                            height: parent.height * 52.8%;
+                            viewport-height: t.height;
+                            t := Text {
+                                horizontal-alignment: center;
+                                width: parent.width * 90%;
+                                text: ReviewStatus.deleted-task.content;
+                                color: Style.review-del-warn-font-color;
+                                wrap: word-wrap;
+                                font-size: parent.height * 14.6%;
+                                font-family: Style.default-font-family;
+                            }
                         }
                     }
 
                     HorizontalBox {
                         alignment: space-around;
-                        min-height: 48px;
-                        preferred-height: parent.height * 14.6%;
-                        max-height: 64px;
 
                         // delete
                         IconButton {
+                            height: 3rem;
                             icon-url: Style.yes-icon;
                             click-button => {
                                 debug("[slint] delete task id: " + ReviewStatus.deleted-task.id);
@@ -143,25 +143,18 @@ component Review inherits VerticalLayout {
                                 GlobalManager.refresh();
                             }
 
-                            min-height: parent.min-height;
-                            preferred-height: parent.preferred-height;
-                            max-height: parent.max-height;
-                            width: self.preferred-height * 1.618;
                             background: Style.popup-win-background;
                         }
 
                         // close
                         IconButton {
+                            height: 3rem;
                             icon-url: Style.close-icon;
 
                             click-button => {
                                 del-warning.close()
                             }
 
-                            min-height: parent.min-height;
-                            preferred-height: parent.preferred-height;
-                            max-height: parent.max-height;
-                            width: self.preferred-height * 1.618;
                             background: Style.popup-win-background;
                         }
                     }
@@ -198,9 +191,8 @@ component Review inherits VerticalLayout {
     }
 
     Rectangle {
-        height: parent.min-height * 38.2%;
-
-        border-radius: 4px;
+        height: 38.2%;
+        border-radius: 6px;
         padding: 4px;
         background: Style.details-background-color;
         opacity: 0.618;
@@ -216,7 +208,7 @@ component Review inherits VerticalLayout {
 
         details-content := TextEdit {
             text: ReviewStatus.selected-task.content;
-            font-size: self.height * 9%;
+            font-size: 1.5rem;
             width: 100%;
             height: 100%;
             opacity: 0.618;

@@ -11,11 +11,11 @@ component NavItem inherits Rectangle {
     clip: true;
     border-radius: self.height / 1.618;
     border-color: Style.nav-border-color;
-    border-width: 0.381px;
+    border-width: 0.01rem;
 
     Text {
         text: view-info.nav-bar-name;
-        font-size: parent.min-height * 44.7%;
+        font-size: 1.618rem;
         font-weight: 647;
         font-family: Style.default-font-family;
         horizontal-alignment: center;
@@ -23,13 +23,13 @@ component NavItem inherits Rectangle {
         color: Style.nav-item-font-color;
         animate color {
             duration: 381ms;
-            easing: ease-out;
+            easing: linear;
         }
     }
 
-    animate background, drop-shadow-blur {
-        duration: 618ms;
-        easing: ease-out-sine;
+    animate drop-shadow-color, drop-shadow-blur {
+        duration: 381ms;
+        easing: linear;
     }
 }
 
@@ -38,23 +38,19 @@ component NavBar inherits HorizontalLayout {
     out property <TabType> active-tab-type: nav-items[0].tab-type;
     out property <int> active-tab-type-idx: 0;
 
-    min-height: 36px;
-    preferred-height: root.min-height * 9%;
-    max-height: 64px;
-    spacing: self.width * 1.618%;
+    height: 100%;
+    width: 100%;
+    spacing: 1rem;
 
     Rectangle {
-        width: 27.6%;
+        width: 16.61%;
     }
 
     for item[idx] in nav-items: NavItem {
         view-info: item;
 
-        min-height: parent.min-height;
-        max-height: parent.max-height;
-        min-width: parent.width * 0.448 / nav-items.length;
         drop-shadow-color: root.active-tab-type == item.tab-type ? Style.nav-activate-background : Style.surface;
-        drop-shadow-blur: root.active-tab-type == item.tab-type ? self.height / 1.618 : 0;
+        drop-shadow-blur: root.active-tab-type == item.tab-type ? self.height / 2.618 : 0;
 
         TouchArea {
             clicked => {
@@ -65,12 +61,12 @@ component NavBar inherits HorizontalLayout {
     }
 
     Rectangle {
-        width: 27.6%;
+        width: 16.61%;
     }
 
-    public function switch-next-tab() {
-        debug("switch to next tab");
-        active-tab-type-idx = mod(active-tab-type-idx + 1, nav-items.length);
+    public function switch-tab(x: int) {
+        debug("switch tab bias: " + x);
+        active-tab-type-idx = abs(mod(active-tab-type-idx + x, nav-items.length));
         active-tab-type = nav-items[active-tab-type-idx].tab-type;
     }
 }
