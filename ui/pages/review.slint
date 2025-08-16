@@ -3,7 +3,7 @@ import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, Chec
 import { Style, View, TabType, ViewInfo, RecordRes, Task } from "../common.slint";
 
 import { RichCheckBox, RichCheckBoxController, RichCheckBoxStatus } from "../components/checkbox.slint";
-import { AutoPopupWindow } from "../components/popupwindow.slint";
+import { AutoPopupWindow, ConfirmPopupWindow } from "../components/popupwindow.slint";
 import { GeneralButton, IconButton } from "../components/buttons.slint";
 import { DefaultEditor } from "../components/editor.slint";
 
@@ -13,6 +13,8 @@ import { GlobalManager } from "global-manager.slint";
 
 component Review inherits VerticalBox {
     in property <[ViewInfo]> page-items;
+    height: 100%;
+    width: 100%;
 
     Rectangle {
         ListView {
@@ -25,7 +27,7 @@ component Review inherits VerticalBox {
                 del-visible: ReviewStatus.del-visible;
 
                 height: 5rem;
-                width: 96%;
+                width: 100%;
 
                 on-checked => {
                     self.finished = !self.finished;
@@ -59,6 +61,28 @@ component Review inherits VerticalBox {
             }
         }
 
+        del-warning := ConfirmPopupWindow {
+            title: "Delete this record?";
+            title-font-size: 5rem;
+            content: ReviewStatus.deleted-task.content;
+            content-font-size: 3rem;
+
+            x: root.width * 5%;
+            y: root.height * 5%;
+            height: root.height * 80%;
+            width: root.width * 90%;
+
+            on-delete => {
+                debug("[slint] delete task id: " + ReviewStatus.deleted-task.id);
+                ReviewController.del-task(ReviewStatus.deleted-task.id);
+                ReviewStatus.selected-task = { id: 0 };
+                GlobalManager.refresh();
+            }
+            on-close => {
+                del-warning.close();
+            }
+        }
+
         copied-warnning := AutoPopupWindow {
             Rectangle {
                 x: parent.width * 38.2%;
@@ -77,87 +101,6 @@ component Review inherits VerticalBox {
                     color: Style.popup-win-font-color;
                     font-size: parent.height * 14.6%;
                     font-family: Style.default-font-family;
-                }
-            }
-        }
-
-        del-warning := PopupWindow {
-            x: parent.width * 5%;
-            y: parent.height * 5%;
-            height: root.height * 90%;
-            width: root.width * 90%;
-
-            Rectangle {
-                background: Style.popup-win-background;
-                border-radius: self.height * 14.6%;
-                opacity: 0.9;
-
-                VerticalBox {
-                    alignment: space-between;
-
-                    Rectangle {
-                        height: 12%;
-                        Text {
-                            horizontal-alignment: center;
-                            vertical-alignment: top;
-                            text: "Delete the task?";
-                            color: Style.popup-win-font-color;
-                            font-size: 2rem;
-                            font-family: Style.default-font-family;
-                            font-weight: 800;
-                            height: 100%;
-                            width: 100%;
-                        }
-                    }
-
-                    Rectangle {
-                        height: 52.8%;
-                        background: Style.details-background-color;
-                        ScrollView {
-                            width: 98%;
-                            height: parent.height * 52.8%;
-                            viewport-height: t.height;
-                            t := Text {
-                                horizontal-alignment: center;
-                                width: parent.width * 90%;
-                                text: ReviewStatus.deleted-task.content;
-                                color: Style.review-del-warn-font-color;
-                                wrap: word-wrap;
-                                font-size: parent.height * 14.6%;
-                                font-family: Style.default-font-family;
-                            }
-                        }
-                    }
-
-                    HorizontalBox {
-                        alignment: space-around;
-
-                        // delete
-                        IconButton {
-                            height: 3rem;
-                            icon-url: Style.yes-icon;
-                            click-button => {
-                                debug("[slint] delete task id: " + ReviewStatus.deleted-task.id);
-                                ReviewController.del-task(ReviewStatus.deleted-task.id);
-                                ReviewStatus.selected-task = { id: 0 };
-                                GlobalManager.refresh();
-                            }
-
-                            background: Style.popup-win-background;
-                        }
-
-                        // close
-                        IconButton {
-                            height: 3rem;
-                            icon-url: Style.close-icon;
-
-                            click-button => {
-                                del-warning.close()
-                            }
-
-                            background: Style.popup-win-background;
-                        }
-                    }
                 }
             }
         }
@@ -208,7 +151,7 @@ component Review inherits VerticalBox {
 
         details-content := TextEdit {
             text: ReviewStatus.selected-task.content;
-            font-size: 1.5rem;
+            font-size: 2.2rem;
             width: 100%;
             height: 100%;
             opacity: 0.618;

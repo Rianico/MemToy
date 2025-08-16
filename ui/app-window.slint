@@ -20,8 +20,10 @@ export component MainWindow inherits Window {
     in-out property <string> name;
     title: @tr("MemToy");
     icon: @image-url("images/a-crab-is-drinking-coffee-before-the-computer-at-n.png");
-    min-width: 1747px;
-    min-height: 1080px;
+    preferred-width: 1747px;
+    preferred-height: 1080px;
+    min-width: 1080px;
+    min-height: 667px;
     background: Style.surface;
 
     VerticalBox {

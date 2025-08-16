@@ -1,4 +1,6 @@
 import { Style } from "../common.slint";
+import { VerticalBox, ScrollView, HorizontalBox } from "std-widgets.slint";
+import { IconButton } from "buttons.slint";
 
 component AutoPopupWindow {
     height: 100%;
@@ -38,4 +40,93 @@ component AutoPopupWindow {
     }
 }
 
-export { AutoPopupWindow }
+component ConfirmPopupWindow inherits PopupWindow {
+
+    in property <string> title <=> title.text;
+    in property <relative-font-size> title-font-size;
+    in property <string> content <=> t.text;
+    in property <relative-font-size> content-font-size;
+
+    callback on-delete();
+    callback on-close();
+
+    Rectangle {
+        background: Style.popup-win-background;
+        border-radius: self.height * 1.618%;
+        height: 100%;
+        width: 100%;
+        opacity: 0.9;
+
+        VerticalBox {
+            alignment: space-between;
+            width: 100%;
+            height: 100%;
+
+            Rectangle {
+                height: 10%;
+                width: 100%;
+                title := Text {
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    color: Style.popup-win-font-color;
+                    font-size: title-font-size;
+                    font-family: Style.default-font-family;
+                    font-weight: 800;
+                    height: 100%;
+                    width: 100%;
+                }
+            }
+
+            Rectangle {
+                height: 70%;
+                width: 100%;
+                background: Style.details-background-color;
+                ScrollView {
+                    width: 98%;
+                    height: 100%;
+                    viewport-height: t.height;
+                    t := Text {
+                        horizontal-alignment: left;
+                        vertical-alignment: top;
+                        width: parent.width * 95%;
+                        color: Style.review-del-warn-font-color;
+                        wrap: word-wrap;
+                        font-size: content-font-size;
+                        font-family: Style.default-font-family;
+                    }
+                }
+            }
+
+            Rectangle {
+                height: 20%;
+                width: 100%;
+                HorizontalBox {
+                    alignment: space-around;
+                    // delete
+                    IconButton {
+                        height: 3rem;
+                        icon-url: Style.yes-icon;
+                        click-button => {
+                            on-delete();
+                        }
+                        background: Style.popup-win-background;
+                    }
+            
+                    // close
+                    IconButton {
+                        height: 3rem;
+                        icon-url: Style.close-icon;
+                        click-button => {
+                            on-close();
+                        }
+                        background: Style.popup-win-background;
+                    }
+                }
+            }
+        }
+    }
+}
+
+export {
+        AutoPopupWindow, ConfirmPopupWindow 
+    }

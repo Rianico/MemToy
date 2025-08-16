@@ -3,7 +3,7 @@ import { HorizontalBox, VerticalBox,  LineEdit, Button, TextEdit, ListView, Chec
 import { Style, View, TabType, ViewInfo, RecordRes, Record } from "../common.slint";
 
 import { RichCheckBox, RichCheckBoxController, RichCheckBoxStatus } from "../components/checkbox.slint";
-import { AutoPopupWindow } from "../components/popupwindow.slint";
+import { AutoPopupWindow, ConfirmPopupWindow } from "../components/popupwindow.slint";
 import { GeneralButton, IconButton } from "../components/buttons.slint";
 import { DefaultEditor } from "../components/editor.slint";
 
@@ -70,84 +70,25 @@ component List inherits VerticalLayout {
             }
         }
 
-        del-warning := PopupWindow {
-            x: parent.width * 5%;
-            y: parent.height * 5%;
-            height: root.height * 90%;
+        del-warning := ConfirmPopupWindow {
+            title: "Delete this record?";
+            title-font-size: 5rem;
+            content: ReviewStatus.deleted-task.content;
+            content-font-size: 3rem;
+
+            x: root.width * 5%;
+            y: root.height * 5%;
+            height: root.height * 80%;
             width: root.width * 90%;
 
-            Rectangle {
-                background: Style.popup-win-background;
-                border-radius: self.height * 14.6%;
-                opacity: 0.9;
-
-                VerticalBox {
-                    alignment: space-between;
-
-                    Rectangle {
-                        height: 12%;
-                        Text {
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
-                            text: "Delete the record?";
-                            color: Style.popup-win-font-color;
-                            font-size: 2rem;
-                            font-family: Style.default-font-family;
-                            font-weight: 800;
-                            height: 100%;
-                            width: 100%;
-                        }
-                    }
-
-                    Rectangle {
-                        height: 52.8%;
-                        background: Style.details-background-color;
-                        ScrollView {
-                            height: 100%;
-                            viewport-height: t.height;
-                            t := Text {
-                                horizontal-alignment: left;
-                                vertical-alignment: center;
-                                width: parent.width * 90%;
-                                text: ListStatus.deleted-record.content;
-                                color: Style.review-del-warn-font-color;
-                                wrap: word-wrap;
-                                font-size: 2rem;
-                                font-family: Style.default-font-family;
-                            }
-                        }
-                    }
-
-                    HorizontalBox {
-                        alignment: space-around;
-
-                        // delete
-                        IconButton {
-                            height: 3rem;
-                            icon-url: Style.yes-icon;
-                            click-button => {
-                                debug("[slint] delete record id: " + ListStatus.deleted-record.id);
-                                ListController.del-record(ListStatus.deleted-record.id);
-                                ListStatus.selected-record = { id: 0 };
-                                GlobalManager.refresh();
-                            }
-
-                            background: Style.popup-win-background;
-                        }
-
-                        // close
-                        IconButton {
-                            height: 3rem;
-                            icon-url: Style.close-icon;
-
-                            click-button => {
-                                del-warning.close()
-                            }
-
-                            background: Style.popup-win-background;
-                        }
-                    }
-                }
+            on-delete => {
+                debug("[slint] delete record id: " + ListStatus.deleted-record.id);
+                ListController.del-record(ListStatus.deleted-record.id);
+                ListStatus.selected-record = { id: 0 };
+                GlobalManager.refresh();
+            }
+            on-close => {
+                del-warning.close();
             }
         }
 
@@ -198,7 +139,7 @@ component List inherits VerticalLayout {
 
         details-content := TextEdit {
             text: ListStatus.selected-record.content;
-            font-size: self.height * 9%;
+            font-size: 2.2rem;
             width: 100%;
             height: 100%;
             opacity: 0.618;

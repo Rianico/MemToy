@@ -4,7 +4,7 @@ import { Style, View, TabType, ViewInfo, RecordRes } from "../common.slint";
 
 import { Calendar, CalendarStatus } from "../components/calendar.slint";
 import { AutoPopupWindow } from "../components/popupwindow.slint";
-import { GeneralButton } from "../components/buttons.slint";
+import { GeneralButton, IconButton } from "../components/buttons.slint";
 
 import { ReviewStatus, ReviewController } from "review-manager.slint";
 import { RecordStatus, RecordController } from "record-manager.slint";
@@ -78,15 +78,14 @@ component Record {
 
             height: 6.18%;
             alignment: center;
-
-            GeneralButton {
-                width: 10rem;
-                button-name: "save";
-                button-font-size: 1.5rem;
-
+            IconButton {
+                icon-url: Style.yes-icon;
+                width: 10%;
                 click-button => {
                     save-button.save();
                 }
+
+                background: Style.popup-win-background;
             }
 
             function save() {
