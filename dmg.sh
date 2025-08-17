@@ -9,7 +9,7 @@ cp target/debug/$app_name dist/$app_name.app/Contents/MacOS/$app_name
 cp ./ui/images/memtoy.icns dist/$app_name.app/Contents/Resources
 
 # 创建 Info.plist 文件
-cat <<EOF > dist/$app_name.app/Contents/Info.plist
+cat <<EOF >dist/$app_name.app/Contents/Info.plist
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -25,9 +25,9 @@ cat <<EOF > dist/$app_name.app/Contents/Info.plist
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.2</string>
+    <string>1.1.0</string>
     <key>CFBundleVersion</key>
-    <string>1.0.2</string>
+    <string>1.1.0</string>
     <key>LSMinimumSystemVersion</key>
     <string>10.15</string>
     <key>NSHighResolutionCapable</key>
