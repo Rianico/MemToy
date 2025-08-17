@@ -29,9 +29,10 @@ pub struct DataBacken;
 impl DataBacken {
     fn save_record(data: impl AsRef<str>, create_date: Option<NaiveDate>) -> anyhow::Result<&'static str> {
         let con = DB_FILE.with(|db_file| Connection::open(db_file))?;
+        let date = create_date.unwrap_or(chrono::Local::now().date_naive()).to_string();
         con.execute(
-            "INSERT INTO records (content, create_date) VALUES (?1, ?2)",
-            [data.as_ref(), create_date.unwrap_or(chrono::Local::now().date_naive()).to_string().as_str()],
+            "INSERT INTO records (content, create_date, checkpoint_date) VALUES (?1, ?2, ?3)",
+            [data.as_ref(), date.as_str(), date.as_str()],
         )?;
         Ok("save success")
     }
@@ -39,6 +40,13 @@ impl DataBacken {
     fn update_record(id: i32, record: impl AsRef<str>) -> anyhow::Result<&'static str> {
         let con = DB_FILE.with(|db_file| Connection::open(db_file))?;
         con.execute("UPDATE records set content = ?1 where id = ?2", (record.as_ref(), &id))?;
+        Ok("save success")
+    }
+
+    fn refresh_checkpoint(id: i32) -> anyhow::Result<&'static str> {
+        let con = DB_FILE.with(|db_file| Connection::open(db_file))?;
+        let today = chrono::Local::now().date_naive().to_string();
+        con.execute("UPDATE records set checkpoint_date = ?1 where id = ?2", (&today, &id))?;
         Ok("save success")
     }
 
@@ -94,6 +102,10 @@ impl General {
         DataBacken::update_record(id, record)
     }
 
+    pub fn refresh_checkpoint(&self, id: i32) -> Result<&'static str, anyhow::Error> {
+        DataBacken::refresh_checkpoint(id)
+    }
+
     pub fn toggle_task(&self, id: i32, finished: bool) -> Result<(), anyhow::Error> {
         DataBacken::toggle_task(id, Self::get_today().to_string(), finished)
     }
@@ -116,14 +128,12 @@ impl General {
         let condition = "?,".repeat(filter.len());
         let condition = condition.strip_suffix(",").unwrap_or_else(|| panic!("Strip suffix ',' for condition error"));
         let query_sql = format!(
-            "SELECT r.id, r.content, r.create_date, COALESCE(t.finished, false) AS finished 
+            "SELECT r.id, r.content, r.create_date, r.checkpoint_date, COALESCE(t.finished, false) AS finished 
             FROM records as r 
             LEFT JOIN tasks t 
-            ON t.id = r.id AND t.create_date = '{}'
-            where r.create_date in ({})
-            order by r.create_date desc, r.id desc",
-            Self::get_today(),
-            condition
+            ON t.id = r.id
+            where r.checkpoint_date in ({condition})
+            order by r.checkpoint_date desc, r.id desc",
         );
         DataBacken::query(query_sql, params_from_iter(&filter), move |row| {
             trace!("{row:?}");
@@ -131,21 +141,27 @@ impl General {
                 id: row.get_unwrap(0),
                 content: row.get_unwrap::<_, String>(1).into(),
                 create_date: row.get_unwrap::<_, String>(2).into(),
-                finished: row.get_unwrap(3),
+                checkpoint_date: row.get_unwrap::<_, String>(3).into(),
+                finished: row.get_unwrap(4),
             })
         })
     }
 
     pub(crate) fn query_all_records(&self) -> Result<Vec<Record>, anyhow::Error> {
         debug!("general query");
-        DataBacken::query("SELECT id, content, create_date from records order by id desc", (), move |row| {
-            trace!("{row:?}");
-            Ok(Record {
-                id: row.get_unwrap(0),
-                content: row.get_unwrap::<_, String>(1).into(),
-                create_date: row.get_unwrap::<_, String>(2).into(),
-            })
-        })
+        DataBacken::query(
+            "SELECT id, content, create_date, checkpoint_date from records order by id desc",
+            (),
+            move |row| {
+                trace!("{row:?}");
+                Ok(Record {
+                    id: row.get_unwrap(0),
+                    content: row.get_unwrap::<_, String>(1).into(),
+                    create_date: row.get_unwrap::<_, String>(2).into(),
+                    checkpoint_date: row.get_unwrap::<_, String>(3).into(),
+                })
+            },
+        )
     }
 
     fn get_today() -> NaiveDate {

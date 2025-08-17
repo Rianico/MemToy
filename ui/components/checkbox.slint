@@ -13,12 +13,14 @@ component RichCheckBox inherits HorizontalBox {
     in property <bool> check-visible: true;
     in property <bool> edit-visible: true;
     in property <bool> del-visible: true;
+    in property <bool> refresh-visible: true;
 
     callback on-checked();
     callback on-select();
     callback on-double-select();
     callback on-del();
     callback on-edit();
+    callback on-refresh();
     callback on-swipe-to-left();
     callback on-swipe-to-right();
 
@@ -65,7 +67,7 @@ component RichCheckBox inherits HorizontalBox {
 
     // content
     Rectangle {
-        width: 98% * (parent.width  - check-box.width - del.width - edit.width);
+        width: 98% * (parent.width - check-box.width - del.width - edit.width);
         height: 3rem;
 
         Text {
@@ -146,6 +148,38 @@ component RichCheckBox inherits HorizontalBox {
 
         click-button => {
             root.on-del();
+        }
+        hover-action => {
+            hovered = !hovered;
+        }
+        states [
+            show when hovered: {
+                opacity: 0.618;
+            }
+            hide when !hovered: {
+                opacity: 0.381;
+            }
+        ]
+
+        animate opacity {
+            duration: 618ms;
+            easing: ease-out;
+        }
+    }
+
+    refresh := IconButton {
+        property <bool> hovered: false;
+
+        icon-color: Style.review-task-font-color;
+        icon-url: Style.refresh-icon;
+        visible: refresh-visible;
+
+        opacity: 0.381;
+        width: 3rem;
+        height: 3rem;
+
+        click-button => {
+            root.on-refresh();
         }
         hover-action => {
             hovered = !hovered;

@@ -6,6 +6,7 @@ global ReviewController {
     callback del-task(id: int);
     pure callback open-link(content: string);
     pure callback update-task(id: int, content: string) -> RecordRes;
+    pure callback refresh-checkpoint(id: int) -> RecordRes;
 
     public function refresh() {
         ReviewStatus.tasks = ReviewController.review-today();
@@ -16,8 +17,10 @@ global ReviewStatus {
     in property <[Task]> tasks: ReviewController.review-today();
     in property <Task> selected-task;
     in property <Task> deleted-task;
+    in property <Task> refresh-task;
     in property <bool> edit-visible;
     in property <bool> del-visible;
+    in property <bool> refresh-visible;
 }
 
 export { ReviewController, ReviewStatus }

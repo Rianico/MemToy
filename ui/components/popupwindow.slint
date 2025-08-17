@@ -101,26 +101,7 @@ component ConfirmPopupWindow inherits PopupWindow {
                 height: 20%;
                 width: 100%;
                 HorizontalBox {
-                    alignment: space-around;
-                    // delete
-                    IconButton {
-                        height: 3rem;
-                        icon-url: Style.yes-icon;
-                        click-button => {
-                            on-delete();
-                        }
-                        background: Style.popup-win-background;
-                    }
-            
-                    // close
-                    IconButton {
-                        height: 3rem;
-                        icon-url: Style.close-icon;
-                        click-button => {
-                            on-close();
-                        }
-                        background: Style.popup-win-background;
-                    }
+                    @children
                 }
             }
         }

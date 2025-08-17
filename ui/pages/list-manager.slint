@@ -5,6 +5,7 @@ global ListController {
     callback del-record(id: int);
     pure callback open-link(content: string);
     pure callback update-record(id: int, content: string) -> RecordRes;
+    pure callback refresh-checkpoint(id: int) -> RecordRes;
 
     public function refresh() {
         ListStatus.records = ListController.all-records();
@@ -15,6 +16,7 @@ global ListStatus {
     in property <[Record]> records: ListController.all-records();
     in property <Record> selected-record;
     in property <Record> deleted-record;
+    in property <Record> refresh-record;
 }
 
 export { ListController, ListStatus }

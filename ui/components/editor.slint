@@ -13,11 +13,12 @@ component DefaultEditor inherits Rectangle {
     height: 100%;
     width: 100%;
     background: Style.popup-win-background;
-    border-radius: 6px;
+    border-radius: self.height * 1.618%;
 
     VerticalBox {
         height: 100%;
         width: 100%;
+        alignment: center;
 
         Rectangle {
             height: 80%;
@@ -68,7 +69,7 @@ component DefaultEditor inherits Rectangle {
         }
 
         HorizontalBox {
-            height: 5rem;
+            height: 6rem;
             alignment: space-around;
 
             save := IconButton {

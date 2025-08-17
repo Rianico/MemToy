@@ -1,6 +1,7 @@
 mod component;
 
 use component::calendar::CalendarTracker;
+use component::db_checker::DbChecker;
 use component::list::ListTracker;
 use component::record::RecordTracker;
 use component::review::ReviewTracker;
@@ -17,6 +18,8 @@ pub fn main() -> Result<(), slint::PlatformError> {
     calendar.get_date(&app);
     calendar.day_of_year(&app);
 
+    DbChecker::create_check_db();
+
     let recordd = RecordTracker::new();
     recordd.save_record_msg(&app);
 
@@ -25,12 +28,14 @@ pub fn main() -> Result<(), slint::PlatformError> {
     review.toggle_task(&app);
     review.del_task(&app);
     review.update_task(&app);
+    review.refresh_checkpoint(&app);
     review.open_link(&app);
 
     let list = ListTracker::new();
     list.query_all_records(&app);
     list.del_record(&app);
     list.update_record(&app);
+    list.refresh_checkpoint(&app);
     list.open_link(&app);
 
     app.run()

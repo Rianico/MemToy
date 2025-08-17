@@ -17,7 +17,11 @@ component Review inherits VerticalBox {
     width: 100%;
 
     Rectangle {
+        height: 60%;
+        width: 100%;
+
         ListView {
+            width: 100%;
             for task[idx] in ReviewStatus.tasks: RichCheckBox {
                 in property <Task> cur-task: task;
                 in property <int> cur-idx: idx;
@@ -25,9 +29,10 @@ component Review inherits VerticalBox {
                 content: self.cur-task.content;
                 edit-visible: ReviewStatus.edit-visible;
                 del-visible: ReviewStatus.del-visible;
+                refresh-visible: ReviewStatus.refresh-visible;
 
                 height: 5rem;
-                width: 100%;
+                width: 98%;
 
                 on-checked => {
                     self.finished = !self.finished;
@@ -50,13 +55,20 @@ component Review inherits VerticalBox {
                     ReviewStatus.selected-task = self.cur-task;
                     edit-warning.show();
                 }
+                on-refresh => {
+                    ReviewStatus.refresh-task = self.cur-task;
+                    ReviewController.refresh-checkpoint(cur-task.id);
+                    refresh-warnning.popup-and-hide();
+                }
                 on-swipe-to-left => {
                     ReviewStatus.edit-visible = true;
                     ReviewStatus.del-visible = true;
+                    ReviewStatus.refresh-visible = true;
                 }
                 on-swipe-to-right => {
                     ReviewStatus.edit-visible = false;
                     ReviewStatus.del-visible = false;
+                    ReviewStatus.refresh-visible = false;
                 }
             }
         }
@@ -72,14 +84,29 @@ component Review inherits VerticalBox {
             height: root.height * 80%;
             width: root.width * 90%;
 
-            on-delete => {
-                debug("[slint] delete task id: " + ReviewStatus.deleted-task.id);
-                ReviewController.del-task(ReviewStatus.deleted-task.id);
-                ReviewStatus.selected-task = { id: 0 };
-                GlobalManager.refresh();
-            }
-            on-close => {
-                del-warning.close();
+            HorizontalBox {
+                alignment: space-around;
+
+                IconButton {
+                    height: 3rem;
+                    icon-url: Style.yes-icon;
+                    click-button => {
+                        debug("[slint] delete task id: " + ReviewStatus.deleted-task.id);
+                        ReviewController.del-task(ReviewStatus.deleted-task.id);
+                        ReviewStatus.selected-task = { id: 0 };
+                        GlobalManager.refresh();
+                    }
+                    background: Style.popup-win-background;
+                }
+
+                IconButton {
+                    height: 3rem;
+                    icon-url: Style.close-icon;
+                    click-button => {
+                        del-warning.close();
+                    }
+                    background: Style.popup-win-background;
+                }
             }
         }
 
@@ -105,7 +132,35 @@ component Review inherits VerticalBox {
             }
         }
 
+        refresh-warnning := AutoPopupWindow {
+            Rectangle {
+                x: parent.width * 38.2%;
+                y: parent.height * 38.2%;
+                height: parent.height * 23.6%;
+                width: parent.width * 23.6%;
+                background: Style.popup-win-background;
+                border-radius: self.height * 14.6%;
+                opacity: 0.8;
+                Text {
+                    text: "Refresh Success";
+                    width: parent.width;
+                    wrap: word-wrap;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    color: Style.popup-win-font-color;
+                    font-size: parent.height * 14.6%;
+                    font-family: Style.default-font-family;
+                }
+            }
+        }
+
         edit-warning := PopupWindow {
+            x: parent.width * 5%;
+            y: parent.height * 5%;
+            height: root.height * 80%;
+            width: root.width * 90%;
+            close-policy: PopupClosePolicy.no-auto-close;
+
             DefaultEditor {
                 content: ReviewStatus.selected-task.content;
 
@@ -124,18 +179,12 @@ component Review inherits VerticalBox {
                 height: parent.height;
                 width: parent.width;
             }
-
-            x: parent.width * 5%;
-            y: parent.height * 5%;
-            height: root.height * 90%;
-            width: root.width * 90%;
-            close-policy: PopupClosePolicy.no-auto-close;
         }
     }
 
     Rectangle {
-        height: 38.2%;
-        border-radius: 6px;
+        height: 36%;
+        border-radius: self.height * 1.618%;
         padding: 4px;
         background: Style.details-background-color;
         opacity: 0.618;

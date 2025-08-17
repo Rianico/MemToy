@@ -11,11 +11,17 @@ import { ReviewStatus, ReviewController } from "review-manager.slint";
 import { ListStatus, ListController } from "list-manager.slint";
 import { GlobalManager } from "global-manager.slint";
 
-component List inherits VerticalLayout {
+component List inherits VerticalBox {
     in property <[ViewInfo]> page-items;
+    height: 100%;
+    width: 100%;
 
     Rectangle {
+        height: 60%;
+        width: 100%;
+
         ListView {
+            width: 100%;
             for record[idx] in ListStatus.records: RichCheckBox {
                 in property <Record> cur-record: record;
                 in property <int> cur-idx: idx;
@@ -23,7 +29,7 @@ component List inherits VerticalLayout {
                 content: self.cur-record.content;
 
                 height: 5rem;
-                width: 96%;
+                width: 100%;
 
                 on-select => {
                     details-content.set-selection-offsets(0, 0);
@@ -40,6 +46,11 @@ component List inherits VerticalLayout {
                 on-edit => {
                     ListStatus.selected-record = self.cur-record;
                     edit-warning.show();
+                }
+                on-refresh => {
+                    ListStatus.refresh-record = self.cur-record;
+                    ListController.refresh-checkpoint(cur-record.id);
+                    refresh-warnning.popup-and-hide();
                 }
                 on-swipe-to-left => {
                 }
@@ -70,6 +81,28 @@ component List inherits VerticalLayout {
             }
         }
 
+        refresh-warnning := AutoPopupWindow {
+            Rectangle {
+                x: parent.width * 38.2%;
+                y: parent.height * 38.2%;
+                height: parent.height * 23.6%;
+                width: parent.width * 23.6%;
+                background: Style.popup-win-background;
+                border-radius: self.height * 14.6%;
+                opacity: 0.8;
+                Text {
+                    text: "Refresh Success";
+                    width: parent.width;
+                    wrap: word-wrap;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    color: Style.popup-win-font-color;
+                    font-size: parent.height * 14.6%;
+                    font-family: Style.default-font-family;
+                }
+            }
+        }
+
         del-warning := ConfirmPopupWindow {
             title: "Delete this record?";
             title-font-size: 5rem;
@@ -81,18 +114,39 @@ component List inherits VerticalLayout {
             height: root.height * 80%;
             width: root.width * 90%;
 
-            on-delete => {
-                debug("[slint] delete record id: " + ListStatus.deleted-record.id);
-                ListController.del-record(ListStatus.deleted-record.id);
-                ListStatus.selected-record = { id: 0 };
-                GlobalManager.refresh();
-            }
-            on-close => {
-                del-warning.close();
+            HorizontalBox {
+                alignment: space-around;
+
+                IconButton {
+                    height: 3rem;
+                    icon-url: Style.yes-icon;
+                    click-button => {
+                        debug("[slint] delete record id: " + ListStatus.deleted-record.id);
+                        ListController.del-record(ListStatus.deleted-record.id);
+                        ListStatus.selected-record = { id: 0 };
+                        GlobalManager.refresh();
+                    }
+                    background: Style.popup-win-background;
+                }
+
+                IconButton {
+                    height: 3rem;
+                    icon-url: Style.close-icon;
+                    click-button => {
+                        del-warning.close();
+                    }
+                    background: Style.popup-win-background;
+                }
             }
         }
 
         edit-warning := PopupWindow {
+            x: parent.width * 5%;
+            y: parent.height * 5%;
+            height: root.height * 80%;
+            width: root.width * 90%;
+            close-policy: PopupClosePolicy.no-auto-close;
+
             DefaultEditor {
                 content: ListStatus.selected-record.content;
 
@@ -111,19 +165,12 @@ component List inherits VerticalLayout {
                 height: 100%;
                 width: 100%;
             }
-
-            x: parent.width * 5%;
-            y: parent.height * 5%;
-            height: root.height * 90%;
-            width: root.width * 90%;
-            close-policy: PopupClosePolicy.no-auto-close;
         }
     }
 
     Rectangle {
-        height: 38.2%;
-
-        border-radius: 4px;
+        height: 36%;
+        border-radius: self.height * 1.618%;
         padding: 4px;
         background: Style.details-background-color;
         opacity: 0.618;

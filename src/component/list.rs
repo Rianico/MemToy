@@ -47,7 +47,7 @@ impl ListTracker {
                     info!("delete record and record, id: {id}");
                 }
                 Err(msg) => {
-                    error!("delete record and record failed, err: {}", msg)
+                    error!("delete record and record failed, err: {msg}")
                 }
             },
         })
@@ -73,6 +73,28 @@ impl ListTracker {
                     })
                     .unwrap_or_else(|msg| {
                         error!("fail to update record, error: {msg:?}");
+                        RecordRes {
+                            success: false,
+                            msg: "save failed".into(),
+                        }
+                    }),
+            }
+        })
+    }
+
+    pub(crate) fn refresh_checkpoint(&self, app: &MainWindow) {
+        let managenet = self.management;
+        app.global::<ListController>().on_refresh_checkpoint(move |id| {
+            debug!("refresh record, id: {id}");
+            match managenet {
+                DataManagementType::Simple(ref general) => general
+                    .refresh_checkpoint(id)
+                    .map(|msg| RecordRes {
+                        success: true,
+                        msg: msg.into(),
+                    })
+                    .unwrap_or_else(|msg| {
+                        error!("fail to refreh record checkpoint day, error: {msg:?}");
                         RecordRes {
                             success: false,
                             msg: "save failed".into(),
