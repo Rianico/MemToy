@@ -6,9 +6,10 @@ on:
       - '**'
       
 env:
-  GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+  # GITHUB_TOKEN: ${{ secrets.GH_PAT }}
   CARGO_TERM_COLOR: always
   PACKAGE_NAME: MemToy
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build:
@@ -16,25 +17,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo
+            target/
+          key: ${{ runner.os }}-13-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
-      - name: Cache Cargo registry
-        uses: actions/cache@v3
-        with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-registry-
-      - name: Cache Cargo build
-        uses: actions/cache@v3
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-build-
       - name: Build the project
         run: cargo build --release --verbose
       - name: Create DMG
