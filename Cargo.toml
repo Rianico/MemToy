@@ -26,3 +26,14 @@ strip = true
 
 [build-dependencies]
 slint-build = "1.12.1"
+
+[package.metadata.packager]
+before-packaging-command = "cargo build --release"
+binaries_dir = "target/release"
+category = "Utility"
+icons = ["ui/images/memtoy.icns"]
+identifier = "tech.rianico.memtoy"
+license_file = "LICENSE"
+out-dir = "bundle"
+product-name = "MemToy"
+resources = ["ui/icons/**"]

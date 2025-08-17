@@ -4,16 +4,18 @@ on:
   create:
     tags:
       - '**'
-      
+
+permissions:
+  contents: write
+
 env:
-  # GITHUB_TOKEN: ${{ secrets.GH_PAT }}
   CARGO_TERM_COLOR: always
-  PACKAGE_NAME: MemToy
-  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  build:
+  bundle-mac:
     runs-on: macos-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,49 +30,21 @@ jobs:
         with:
           toolchain: stable
           override: true
-      - name: Build the project
-        run: cargo build --release --verbose
-      - name: Create DMG
+      - name: Install cargo-packager
+        run: cargo install -f cargo-packager
+      - name: Bundle packages
+        run: cargo packager --formats dmg
+      - name: Upload artifact
         run: |
-          app_name=${{ env.PACKAGE_NAME }}
-          
-          mkdir -p dist/$app_name.app/Contents/{MacOS,Resources}
-          cp target/release/$app_name dist/$app_name.app/Contents/MacOS/$app_name
-          cp ./ui/images/memtoy.icns dist/$app_name.app/Contents/Resources
-
-          cat <<EOF > dist/$app_name.app/Contents/Info.plist
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>CFBundleExecutable</key>
-              <string>$app_name</string>
-              <key>CFBundleIdentifier</key>
-              <string>tech.rianico.$app_name</string>
-              <key>CFBundleName</key>
-              <string>$app_name</string>
-              <key>CFBundleVersion</key>
-              <string>${{ github.ref_name }}</string>
-              <key>CFBundleShortVersionString</key>
-              <string>${{ github.ref_name }}</string>
-              <key>CFBundleIconFile</key>
-              <string>memtoy</string>
-              <key>NSHighResolutionCapable</key>
-              <true/>
-          </dict>
-          </plist>
-          EOF
-
-          hdiutil create -srcfolder dist/$app_name.app -volname "$app_name" -fs HFS+ -format UDZO -ov dist/$app_name.dmg
-          
-          echo "DMG 文件已生成：dist/$app_name.dmg"
-          echo "sha256sum: $(shasum -a 256 dist/$app_name.dmg)"
-
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            ./dist/${{ env.PACKAGE_NAME }}.dmg
-          # body_path: CHANGELOG.md
-          draft: false
-          prerelease: false
+          gh release upload ${{ github.ref_name }} bundle/MemToy.dmg
+  publish-release:
+    needs:
+      - bundle-mac
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: mark release as non-draft
+        run: |
+          gh release edit ${{ github.ref_name }} --draft=false
