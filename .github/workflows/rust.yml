@@ -31,20 +31,14 @@ jobs:
           toolchain: stable
           override: true
       - name: Install cargo-packager
-        run: cargo install -f cargo-packager
+        run: cargo install cargo-packager
       - name: Bundle packages
         run: cargo packager --formats dmg
-      - name: Upload artifact
-        run: |
-          gh release upload ${{ github.ref_name }} bundle/MemToy_*.dmg
-  publish-release:
-    needs:
-      - bundle-mac
-    runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: mark release as non-draft
-        run: |
-          gh release edit ${{ github.ref_name }} --draft=false
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ./bundle/MemToy_*.dmg
+          # body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
