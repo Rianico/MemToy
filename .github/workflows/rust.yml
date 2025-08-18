@@ -38,10 +38,16 @@ jobs:
         with:
           toolchain: stable
 
-      - name: Install cargo-packager
-        run: cargo install cargo-packager
+      - name: Install cargo-packager if not installed
+        id: install_cargo_packager
+        run: |
+          if command -v cargo-packager &> /dev/null; then
+            cargo packager --version
+          else
+            cargo install cargo-packager && cargo packager --version
+          fi
 
-      - name: Bundle packages
+      - name: Build package for mac
         run: cargo packager --formats dmg
 
       - name: Release
