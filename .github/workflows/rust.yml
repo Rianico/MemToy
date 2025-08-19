@@ -14,6 +14,8 @@ env:
 jobs:
   bundle-mac:
     runs-on: macos-latest
+    outputs:
+      sha256: ${{ steps.get_sha256.outputs.sha256 }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -41,7 +43,7 @@ jobs:
       - name: Install cargo-packager if not installed
         id: install_cargo_packager
         run: |
-          if command -v cargo-packager &> /dev/null; then
+          if command -v cargo-packager &> /dev/null;
             cargo packager --version
           else
             cargo install cargo-packager && cargo packager --version
@@ -50,11 +52,12 @@ jobs:
       - name: Build package for mac
         run: cargo packager --formats dmg
 
-      - name: Upload DMG artifact for tap
-        uses: actions/upload-artifact@v4
-        with:
-          name: memtoy-dmg
-          path: ./bundle/MemToy_*.dmg
+      - name: Get sha256
+        id: get_sha256
+        run: |
+          DMG_FILE=$(find ./bundle -name "MemToy_*.dmg" -print -quit)
+          SHA256=$(shasum -a 256 $DMG_FILE | awk '{print $1}')
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -70,25 +73,18 @@ jobs:
     needs: bundle-mac
     runs-on: ubuntu-latest
     steps:
-      - name: Download DMG artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: memtoy-dmg
-
       - name: Checkout homebrew-tap
         uses: actions/checkout@v4
         with:
           repository: Rianico/homebrew-tap
-          # This secret should be a deploy key with write permissions to the tap repository
-          ssh-key: ${{ secrets.HOMEBREW_TAP_SSH_KEY }}
+          token: ${{ secrets.HOMEBREW_TAP_PAT }}
           path: homebrew-tap
 
       - name: Update Cask
         run: |
           set -e
           VERSION=$(echo ${{ github.ref_name }} | sed 's/v//')
-          DMG_FILE=$(find . -name "MemToy_*.dmg" -print -quit)
-          SHA256=$(shasum -a 256 $DMG_FILE | awk '{print $1}')
+          SHA256="${{ needs.bundle-mac.outputs.sha256 }}"
           CASK_FILE="homebrew-tap/Casks/memtoy.rb"
 
           echo "Updating Cask file: $CASK_FILE"
