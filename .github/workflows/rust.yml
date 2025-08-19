@@ -50,6 +50,12 @@ jobs:
       - name: Build package for mac
         run: cargo packager --formats dmg
 
+      - name: Upload DMG artifact for tap
+        uses: actions/upload-artifact@v4
+        with:
+          name: memtoy-dmg
+          path: ./bundle/MemToy_*.dmg
+
       - name: Release
         uses: softprops/action-gh-release@v2
         if: github.ref_type == 'tag'
@@ -59,3 +65,45 @@ jobs:
           # body_path: CHANGELOG.md
           draft: false
           prerelease: false
+
+  update-homebrew-tap:
+    needs: bundle-mac
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download DMG artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: memtoy-dmg
+
+      - name: Checkout homebrew-tap
+        uses: actions/checkout@v4
+        with:
+          repository: Rianico/homebrew-tap
+          # This secret should be a deploy key with write permissions to the tap repository
+          ssh-key: ${{ secrets.HOMEBREW_TAP_SSH_KEY }}
+          path: homebrew-tap
+
+      - name: Update Cask
+        run: |
+          set -e
+          VERSION=$(echo ${{ github.ref_name }} | sed 's/v//')
+          DMG_FILE=$(find . -name "MemToy_*.dmg" -print -quit)
+          SHA256=$(shasum -a 256 $DMG_FILE | awk '{print $1}')
+          CASK_FILE="homebrew-tap/Casks/memtoy.rb"
+
+          echo "Updating Cask file: $CASK_FILE"
+          echo "Version: $VERSION"
+          echo "SHA256: $SHA256"
+
+          sed -i "s/^  version ".*"/  version \"$VERSION\"/" "$CASK_FILE"
+          sed -i "s/^  sha256 ".*"/  sha256 \"$SHA256\"/" "$CASK_FILE"
+
+          echo "Cask file updated:"
+          cat "$CASK_FILE"
+
+          cd homebrew-tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/memtoy.rb
+          git commit -m "Update memtoy cask to $VERSION"
+          git push
