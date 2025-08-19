@@ -75,6 +75,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           token: ${{ secrets.HOMEBREW_TAP_PAT }}
+          persist-credentials: false
           repository: Rianico/homebrew-tap
           ref: main
           path: homebrew-tap
