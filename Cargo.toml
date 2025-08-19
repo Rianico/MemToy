@@ -2,7 +2,7 @@
 build = "build.rs"
 edition = "2021"
 name = "MemToy"
-version = "1.1.0"
+version = "1.1.1"
 
 [dependencies]
 anyhow = "1.0.94"
