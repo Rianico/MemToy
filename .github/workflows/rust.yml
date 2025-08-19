@@ -74,7 +74,7 @@ jobs:
       - name: Checkout homebrew-tap
         uses: actions/checkout@v5
         with:
-          token: ${{ secrets.HOMEBREW_TAP_PAT }}
+          # token: ${{ secrets.HOMEBREW_TAP_PAT }}
           repository: Rianico/homebrew-tap
           ref: main
           path: homebrew-tap
@@ -83,6 +83,7 @@ jobs:
         run: |
           set -e
           cd homebrew-tap
+          git remote add target https://Rianico:${{ secrets.HOMEBREW_TAP_PAT }}@github.com/homebrew-tap.git
           git remote -v
 
           VERSION=$(echo ${{ github.ref_name }} | sed 's/v//')
@@ -106,4 +107,4 @@ jobs:
           git commit -m "Update memtoy cask to $VERSION"
           gh auth status  # Verify authentication
           gh repo view --json permissions  # Show repo permissions
-          git push
+          git push target main
