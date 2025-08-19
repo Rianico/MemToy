@@ -83,22 +83,31 @@ jobs:
         run: |
           set -e
           cd homebrew-tap
-          git remote -v
 
           VERSION=$(echo ${{ github.ref_name }} | sed 's/v//')
           SHA256="${{ needs.bundle-mac.outputs.sha256 }}"
           CASK_FILE="Casks/memtoy.rb"
+
           echo "Updating Cask file: $CASK_FILE"
           echo "Version: $VERSION"
           echo "SHA256: $SHA256"
-          sed -i "s/^  version ".*"/  version \"$VERSION\"/" "$CASK_FILE"
-          sed -i "s/^  sha256 ".*"/  sha256 \"$SHA256\"/" "$CASK_FILE"
+
+          # Use a different delimiter for sed to avoid issues if paths/versions contain slashes
+          sed -i "s|^  version .*|  version \"$VERSION\"|" "$CASK_FILE"
+          sed -i "s|^  sha256 .*|  sha256 \"$SHA256\"|" "$CASK_FILE"
+
           echo "Cask file updated:"
           cat "$CASK_FILE"
 
-          echo "Start to commit to git."
+          echo "Configuring Git user..."
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Casks/memtoy.rb
-          git commit -m "Update memtoy cask to $VERSION"
-          git push
+
+          git add "$CASK_FILE"
+          # Check if there are changes to commit to avoid an error
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "Update memtoy cask to v$VERSION"
+            git push
+          else
+            echo "No changes to commit."
+          fi
