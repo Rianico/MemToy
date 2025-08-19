@@ -82,6 +82,7 @@ jobs:
       - name: Update Cask
         run: |
           set -e
+          cd homebrew-tap
           git remote -v
 
           VERSION=$(echo ${{ github.ref_name }} | sed 's/v//')
