@@ -109,4 +109,4 @@ jobs:
           git commit -m "Update memtoy cask to $VERSION"
           # gh auth status  # Verify authentication
           # gh repo view --json permissions  # Show repo permissions
-          git push target main
+          git push
