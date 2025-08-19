@@ -29,7 +29,7 @@ component List inherits VerticalBox {
                 content: self.cur-record.content;
 
                 height: 5rem;
-                width: 100%;
+                width: 96%;
 
                 on-select => {
                     details-content.set-selection-offsets(0, 0);
@@ -169,7 +169,7 @@ component List inherits VerticalBox {
     }
 
     Rectangle {
-        height: 36%;
+        height: 32%;
         border-radius: self.height * 1.618%;
         padding: 4px;
         background: Style.details-background-color;
