@@ -13,8 +13,6 @@ jobs:
     runs-on: macos-latest
     outputs:
       sha256: ${{ steps.get_sha256.outputs.sha256 }}
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
