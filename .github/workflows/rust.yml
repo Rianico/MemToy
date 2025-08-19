@@ -74,17 +74,15 @@ jobs:
       - name: Checkout homebrew-tap
         uses: actions/checkout@v5
         with:
-          token: ${{ secrets.HOMEBREW_TAP_PAT }}
-          persist-credentials: true
           repository: Rianico/homebrew-tap
           ref: main
           path: homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_PAT }}
 
       - name: Update Cask
         run: |
           set -e
           cd homebrew-tap
-          git remote set-url origin git@github.com:Rianico/homebrew-tap.git
           git remote -v
 
           VERSION=$(echo ${{ github.ref_name }} | sed 's/v//')
