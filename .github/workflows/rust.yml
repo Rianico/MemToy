@@ -93,11 +93,15 @@ jobs:
           sed -i "s/^  sha256 ".*"/  sha256 \"$SHA256\"/" "$CASK_FILE"
 
           echo "Cask file updated:"
-          curl -H "Authorization: token ${{ secrets.HOMEBREW_TAP_PAT }}" https://api.github.com/repos/Rianico/homebrew-tap
           cat "$CASK_FILE"
 
+          echo "Start to commit to git."
+          git config --global credential.helper
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Casks/memtoy.rb
           git commit -m "Update memtoy cask to $VERSION"
+          git remote -v
+          gh auth status  # Verify authentication
+          gh repo view --json permissions  # Show repo permissions
           git push
