@@ -18,7 +18,7 @@ jobs:
       sha256: ${{ steps.get_sha256.outputs.sha256 }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Cache
         uses: actions/cache@v4
@@ -80,25 +80,20 @@ jobs:
           path: homebrew-tap
 
       - name: Update Cask
-        env:
-          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_PAT }}
         run: |
           set -e
           cd homebrew-tap
-          # git remote set-url origin https://Rianico:${{ secrets.HOMEBREW_TAP_PAT }}@github.com/Rianico/homebrew-tap.git
+          git remote set-url origin https://Rianico:${{ secrets.HOMEBREW_TAP_PAT }}@github.com/Rianico/homebrew-tap.git
           git remote -v
 
           VERSION=$(echo ${{ github.ref_name }} | sed 's/v//')
           SHA256="${{ needs.bundle-mac.outputs.sha256 }}"
           CASK_FILE="Casks/memtoy.rb"
-
           echo "Updating Cask file: $CASK_FILE"
           echo "Version: $VERSION"
           echo "SHA256: $SHA256"
-
           sed -i "s/^  version ".*"/  version \"$VERSION\"/" "$CASK_FILE"
           sed -i "s/^  sha256 ".*"/  sha256 \"$SHA256\"/" "$CASK_FILE"
-
           echo "Cask file updated:"
           cat "$CASK_FILE"
 
@@ -107,6 +102,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Casks/memtoy.rb
           git commit -m "Update memtoy cask to $VERSION"
-          # gh auth status  # Verify authentication
-          # gh repo view --json permissions  # Show repo permissions
           git push
